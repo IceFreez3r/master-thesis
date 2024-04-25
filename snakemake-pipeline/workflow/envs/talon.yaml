@@ -1,0 +1,6 @@
+name: talon
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - talon=6.0.1
