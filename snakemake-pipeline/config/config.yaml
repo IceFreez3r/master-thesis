@@ -1,0 +1,17 @@
+# Directory paths
+reads_dir: /path/to/reads
+alignment_dir: /path/to/alignment_v45
+annot_gtf: /path/to/gencode_human/version_45/gencode.v45.annotation.gtf.gz
+genome_fa: /path/to/gencode_human/version_45/GRCh38.p14.genome.fa
+genome_name: GRCh38
+annot_name: gencode_v45
+sequencing_platform: Sequel II
+
+sample_table: /path/to/reads/metadata_tissue.tsv
+
+# If true input files to talon will be copied to $TMPDIR before running talon
+# Useful if IO is slow
+talon_use_tmpdir: true
+
+# cluster couldn't find conda
+path_to_conda: /home/lankenau/miniforge3/bin
