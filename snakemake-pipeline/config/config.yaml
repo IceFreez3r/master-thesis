@@ -1,13 +1,15 @@
 # Directory paths
-reads_dir: /project/hfa_work/ENCODE/reads
-alignment_dir: /project/hfa_work/ENCODE/alignment_v45
-annot_gtf: /project/hfa_work/ENCODE/gencode_human/version_45/gencode.v45.annotation.gtf.gz
-genome_fa: /project/hfa_work/ENCODE/gencode_human/version_45/GRCh38.p14.genome.fa
+reads_dir: /project/hfa_work/ENCODE/data/reads
+alignment_dir: /project/hfa_work/ENCODE/data/alignment_v45
+annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_45/gencode.v45.annotation.gtf.gz
+genome_fa: /project/hfa_work/ENCODE/data/gencode_human/version_45/GRCh38.p14.genome.fa
 genome_name: GRCh38
 annot_name: gencode_v45
 sequencing_platform: Sequel II
 
-sample_table: /project/hfa_work/ENCODE/reads/metadata_tissue.tsv
+sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue.tsv
+# tsv file with sample ID matching the IDs above and the file path to the transcriptome in .gtf.gz format
+transcriptome_table: /project/hfa_work/ENCODE/data/talon_gtf/gtf_metadata.tsv
 
 # If true input files to talon will be copied to $TMPDIR before running talon
 # Useful if IO is slow
