@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import glob
 
 configfile: "config/config.yaml"
 
@@ -8,8 +9,15 @@ os.environ["PATH"]= config["path_to_conda"] + os.pathsep + os.environ["PATH"]
 
 sample_df = pd.read_csv(config['sample_table'], sep="\t")
 samples = sample_df["sample ID"].tolist()
+
+tissues = sample_df["group"].unique().tolist()
+# filter for matching files in CAGE_dir
+CAGE_dir = config["CAGE_dir"]
+tissues = [tissue for tissue in tissues if glob.glob(f"{CAGE_dir}/*{tissue}*.bed.gz")]
+
 gtf_df = pd.read_csv(config['transcriptome_table'], sep="\t")
 
+include: "rules/CAGE.smk"
 include: "rules/cerberus.smk"
 include: "rules/talon.smk"
 include: "rules/sqanti.smk"

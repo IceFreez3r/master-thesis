@@ -1,5 +1,7 @@
 import pandas as pd
 
+# localrules: cerberus_agg_ends_config, cerberus_agg_ics_config
+
 rule filter_gtf:
     '''Filters out `source` attribute from the gtf. Would throw an error in cerberus_gtf_to_bed and is redundant anyways.'''
     input:
@@ -83,31 +85,56 @@ rule cerberus_agg_ends:
     shell:
         'cerberus agg_ends --input {input.config} --mode {wildcards.mode} -o {output.bed} > {log} 2>&1'
 
-rule cerberus_agg_ics_config:
-    '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
-    input:
-        ref = 'results/cerberus/reference_ics.ics',
-        ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples)
-    output:
-        config = 'results/cerberus/configs/agg_ics.csv'
-    run:
-        df = pd.DataFrame({'BED file path': [input.ref], 'Reference': [True], 'Source name': ['ENCODE']})
-        for ics in input.ics:
-            df = pd.concat([df, pd.DataFrame({'BED file path': [ics], 'Reference': [False], 'Source name': ['TALON']})])
-        df.to_csv(output.config, index=False, header=False)
+# rule cerberus_agg_ics_config:
+#     '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
+#     input:
+#         ref = 'results/cerberus/reference_ics.ics',
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples)
+#     output:
+#         config = 'results/cerberus/configs/agg_ics.csv'
+#     run:
+#         df = pd.DataFrame({'BED file path': [input.ref], 'Reference': [True], 'Source name': ['ENCODE']})
+#         for ics in input.ics:
+#             df = pd.concat([df, pd.DataFrame({'BED file path': [ics], 'Reference': [False], 'Source name': ['TALON']})])
+#         df.to_csv(output.config, index=False, header=False)
 
-rule cerberus_agg_ics:
+# rule cerberus_agg_ics:
+#     input:
+#         ref = 'results/cerberus/reference_ics.ics',
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples),
+#         config = 'results/cerberus/configs/agg_ics.csv'
+#     output:
+#         tsv = 'results/cerberus/agg_ics.tsv'
+#     log: 'logs/cerberus/agg_ics.log'
+#     conda:
+#         'cerberus'
+#     threads: 16 # I think it uses threading under the hood
+#     resources:
+#         mem_mib = 100 * 1024,
+#         runtime_min = 120,
+#     shell:
+#         'cerberus agg_ics --input {input.config} -o {output.tsv} > {log} 2>&1'
+
+rule cerberus_agg_ics_script:
     input:
         ref = 'results/cerberus/reference_ics.ics',
         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples),
-        config = 'results/cerberus/configs/agg_ics.csv'
     output:
-        tsv = 'results/cerberus/agg_ics.tsv'
+        tsv = 'results/cerberus/agg_ics.tsv',
+        config = 'results/cerberus/configs/agg_ics.csv'
+    params:
+        limit = config['aggregate_at_once_limit']
     log: 'logs/cerberus/agg_ics.log'
     conda:
         'cerberus'
-    shell:
-        'cerberus agg_ics --input {input.config} -o {output.tsv} > {log} 2>&1'
+    benchmark:
+        'benchmarks/cerberus/agg_ics.tsv'
+    threads: 16 # I think it uses threading under the hood
+    resources:
+        mem_mib = 900 * 1024,
+        runtime_min = 120,
+    script:
+        '../scripts/cerberus_agg_ics.py'
 
 rule cerberus_write_reference:
     input:
@@ -119,6 +146,10 @@ rule cerberus_write_reference:
     log: 'logs/cerberus/write_reference.log'
     conda:
         'cerberus'
+    threads: 16 # I think it uses threading under the hood
+    resources:
+        mem_mib = 100 * 1024,
+        runtime_min = 120,
     shell:
         'cerberus write_reference --tss {input.tss} --tes {input.tes} --ics {input.ics} -o {output.h5} > {log} 2>&1'
 

@@ -2,6 +2,7 @@ rule sqanti3_qc:
     input:
         gtf = "results/talon/gtfs/{sample}.gtf",
         ref_gtf = "results/annotation.gtf",
+        # cage = "resources/CAGE/{tissue}.bed", # Include in analysis?
     # output:
     # TODO
     params:

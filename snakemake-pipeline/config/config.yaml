@@ -17,3 +17,11 @@ talon_use_tmpdir: true
 
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge3/bin
+
+# Searched for CAGE files matching the tissues from the sample table
+# File name needs to contain the tissue name
+CAGE_dir: /project/hfa_work/ENCODE/data/CAGE
+
+# aggregating all samples with cerberus at once can be memory intensive
+# set to None to disable
+aggregate_at_once_limit: 5
