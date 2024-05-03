@@ -1,5 +1,6 @@
 .snakemake
 
+benchmarks
 results
 resources
 logs
