@@ -2,6 +2,10 @@ import pandas as pd
 
 # localrules: cerberus_agg_ends_config, cerberus_agg_ics_config
 
+rule cerberus:
+    input:
+        annotated_gtfs = expand('results/cerberus/replace_gtf_ids/{sample}.gtf', sample=util.get_samples(config)),
+
 rule filter_gtf:
     '''Filters out `source` attribute from the gtf. Would throw an error in cerberus_gtf_to_bed and is redundant anyways.'''
     input:
@@ -63,7 +67,7 @@ rule cerberus_agg_ends_config:
     '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
     input:
         ref = 'results/cerberus/reference_{mode}.bed',
-        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=samples)
+        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.get_samples(config))
     output:
         config = 'results/cerberus/configs/agg_ends_{mode}.csv'
     run:
@@ -75,7 +79,7 @@ rule cerberus_agg_ends_config:
 rule cerberus_agg_ends:
     input:
         ref = 'results/cerberus/reference_{mode}.bed',
-        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=samples),
+        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.get_samples(config)),
         config = 'results/cerberus/configs/agg_ends_{mode}.csv'
     output:
         bed = 'results/cerberus/agg_{mode}.bed'
@@ -89,7 +93,7 @@ rule cerberus_agg_ends:
 #     '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
 #     input:
 #         ref = 'results/cerberus/reference_ics.ics',
-#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples)
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config))
 #     output:
 #         config = 'results/cerberus/configs/agg_ics.csv'
 #     run:
@@ -101,14 +105,14 @@ rule cerberus_agg_ends:
 # rule cerberus_agg_ics:
 #     input:
 #         ref = 'results/cerberus/reference_ics.ics',
-#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples),
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config)),
 #         config = 'results/cerberus/configs/agg_ics.csv'
 #     output:
 #         tsv = 'results/cerberus/agg_ics.tsv'
 #     log: 'logs/cerberus/agg_ics.log'
 #     conda:
 #         'cerberus'
-#     threads: 16 # I think it uses threading under the hood
+#     threads: 8 # I think it uses threading under the hood
 #     resources:
 #         mem_mib = 100 * 1024,
 #         runtime_min = 120,
@@ -118,7 +122,7 @@ rule cerberus_agg_ends:
 rule cerberus_agg_ics_script:
     input:
         ref = 'results/cerberus/reference_ics.ics',
-        ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=samples),
+        ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config)),
     output:
         tsv = 'results/cerberus/agg_ics.tsv',
         config = 'results/cerberus/configs/agg_ics.csv'
@@ -129,7 +133,7 @@ rule cerberus_agg_ics_script:
         'cerberus'
     benchmark:
         'benchmarks/cerberus/agg_ics.tsv'
-    threads: 16 # I think it uses threading under the hood
+    threads: 8 # I think it uses threading under the hood
     resources:
         mem_mib = 900 * 1024,
         runtime_min = 120,
@@ -155,15 +159,17 @@ rule cerberus_write_reference:
 
 rule cerberus_annotate_transcriptome:
     input:
-        gtf = 'data/genes.gtf',
-        reference = 'results/cerberus/reference.h5'
+        gtf = 'resources/transcriptome/{sample}_filtered.gtf',
+        h5 = 'results/cerberus/reference.h5'
     output:
-        bed = 'results/cerberus/genes_annotated.bed' # TODO
-    log: 'logs/cerberus/annotate_transcriptome.log'
+        gtf = 'results/cerberus/annotated/{sample}.gtf'
+    log: 'logs/cerberus/annotate/{sample}.log'
+    params:
+        source = "TALON"
     conda:
         'cerberus'
     shell:
-        'cerberus annotate_transcriptome --gtf {input.gtf} --h5 {input.reference} -o {output.bed} > {log} 2>&1'
+        'cerberus annotate_transcriptome --gtf {input.gtf} --h5 {input.h5} --source {params.source} -o {output.gtf} > {log} 2>&1'
 
 rule cerberus_replace_ab_ids:
     input:
@@ -179,16 +185,25 @@ rule cerberus_replace_ab_ids:
     shell:
         'cerberus replace_ab_ids --h5 {input.reference} --ab {input.talon_abundance} --source {params.source} --collapse -o {output.tsv} > {log} 2>&1'
 
+rule gz_gtf:
+    input:
+        gtf = 'results/cerberus/annotated/{sample}.gtf'
+    output:
+        gtf_gz = 'results/cerberus/annotated/{sample}.gtf.gz'
+    shell:
+        'gzip -c {input.gtf} > {output.gtf_gz}'
+
+# TODO: Unclear if it wants a .gz or not
 rule cerberus_replace_gtf_ids:
     input:
         reference = 'results/cerberus/reference.h5',
-        talon_gtf = 'results/talon/genes.gtf',
+        gtf_gz = 'results/cerberus/annotated/{sample}.gtf.gz',
     output:
-        gtf = 'results/cerberus/genes.gtf'
+        gtf = 'results/cerberus/replace_gtf_ids/{sample}.gtf'
     params:
         source = "TALON"
-    log: 'logs/cerberus/replace_gtf_ids.log'
+    log: 'logs/cerberus/replace_gtf_ids/{sample}.log'
     conda:
         'cerberus'
     shell:
-        'cerberus replace_gtf_ids --h5 {input.reference} --gtf {input.talon_gtf} --source {params.source} --update_ends --collapse -o {output.gtf} > {log} 2>&1'
+        'cerberus replace_gtf_ids --h5 {input.reference} --gtf {input.gtf_gz} --source {params.source} --update_ends --collapse -o {output.gtf} > {log} 2>&1'
