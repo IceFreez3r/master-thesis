@@ -19,11 +19,10 @@ dependencies:
  - click
  - pybigwig
  - bamread>=0.0.10
-#  - pyranges=0.0.71 # Clone manually from https://github.com/fairliereese/pyranges and `pip install .`
+#  - pyranges=0.0.71 # Clone manually from https://github.com/fairliereese/pyranges
  - pandarallel
  - scikit-learn
  - sparse
  - pytables
  - pip:
    - swan-vis
-#  - lapa # Clone manually from https://github.com/mortazavilab/lapa
