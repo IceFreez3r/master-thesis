@@ -24,6 +24,7 @@ def get_experiments(config):
     experiments = [experiment.split("/")[-1].split(".")[0] for experiment in experiments]
     return experiments
 
+
 def get_experiment_for_sample(config, sample):
     sample_df = get_sample_df(config)
     experiment = sample_df[sample_df["sample ID"] == sample]["file"].values[0]
@@ -38,7 +39,14 @@ def get_tissue_for_sample(config, sample):
 def get_alignment_for_sample(config, sample):
     return os.path.join(config['alignment_dir'], get_experiment_for_sample(config, sample) + '_aligned.bam')
 
+
 def get_samples_for_tissue(config, tissue):
     sample_df = get_sample_df(config)
     samples = sample_df[sample_df["group"] == tissue]["sample ID"].tolist()
     return samples
+
+def get_experiments_for_tissue(config, tissue):
+    sample_df = get_sample_df(config)
+    experiments = sample_df[sample_df["group"] == tissue]["file"].tolist()
+    experiments = [experiment.split("/")[-1].split(".")[0] for experiment in experiments]
+    return experiments
