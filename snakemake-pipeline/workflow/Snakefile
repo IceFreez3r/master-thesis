@@ -10,6 +10,7 @@ os.environ["PATH"]= config["path_to_conda"] + os.pathsep + os.environ["PATH"]
 
 include: "rules/cage.smk"
 include: "rules/cerberus.smk"
+include: "rules/flair.smk"
 include: "rules/lapa.smk"
 include: "rules/talon.smk"
 include: "rules/sqanti.smk"
