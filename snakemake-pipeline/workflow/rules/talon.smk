@@ -5,7 +5,7 @@ import sys
 
 rule talon:
     input:
-        expand("results/talon/talon_{tissue}.gtf", tissue=util.get_tissues(config)),
+        expand("results/talon/talon_{tissue}.gtf", tissue=util.tissues),
 
 
 rule talon_label_reads:
@@ -15,7 +15,7 @@ rule talon_label_reads:
         sam="results/talon/labeled/{experiment}_labeled.sam",
         tsv="results/talon/labeled/{experiment}_read_labels.tsv",
     params:
-        genome=config["genome_fa"],
+        genome=config["reference_fa"],
         output_prefix="results/talon/labeled/{experiment}",
     log:
         "logs/talon/label_reads/{experiment}.log",
@@ -55,7 +55,7 @@ rule talon_initialize_database:
 # rule talon_config:
 #     '''creates a csv file with dataset name, sample description, platform, sam file'''
 #     input:
-#         sample_sams = expand('results/talon/labeled/{experiment}_labeled.sam', experiment=util.get_experiments(config))
+#         sample_sams = expand('results/talon/labeled/{experiment}_labeled.sam', experiment=util.experiments)
 #     output:
 #         csv = 'results/talon/config.csv'
 #     params:
@@ -79,7 +79,7 @@ rule talon_run:
         db="results/talon/talon.db",
         sample_sams=expand(
             "results/talon/labeled/{experiment}_labeled.sam",
-            experiment=util.get_experiments(config),
+            experiment=util.experiments,
         ),
     output:
         config="results/talon/config.csv",
@@ -88,10 +88,10 @@ rule talon_run:
     log:
         "logs/talon/talon.log",
     params:
-        samples=util.get_samples(config),
+        samples=util.samples,
         genome_name=config["genome_name"],
         output_prefix="results/talon/",
-        use_tmpdir=config["talon_use_tmpdir"],
+        use_tmpdir=config["talon"]["use_tmpdir"],
         sequencing_platform=config["sequencing_platform"],
     threads: 64
     resources:
@@ -164,9 +164,7 @@ rule talon_create_GTF:
         genome_name=config["genome_name"],
         annot_name=config["annot_name"],
         output_prefix=lambda wildcards: "results/talon/talon_{wildcards.tissue}",
-        samples=lambda wildcards: "\n".join(
-            util.get_samples_for_tissue(config, wildcards.tissue)
-        ),
+        samples=lambda wildcards: "\n".join(util.samples_for_tissue(wildcards.tissue)),
     threads: 32
     resources:
         mem_mib=400 * 1024,

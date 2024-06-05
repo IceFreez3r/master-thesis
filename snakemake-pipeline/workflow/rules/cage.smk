@@ -1,6 +1,6 @@
 rule CAGE:
     input:
-        expand("resources/CAGE/{tissue}.bed", tissue=util.get_tissues(config))
+        expand("resources/CAGE/{tissue}.bed", tissue=util.tissues)
 
 
 rule unzip_CAGE_bed:

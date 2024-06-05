@@ -9,7 +9,7 @@ rule chromsizes:
     output:
         chromsizes = 'resources/genome.fasta.chromsizes',
     params:
-        fasta = config['genome_fa']
+        fasta = config['reference_fa']
     log: 'logs/lapa/chromsizes.log'
     shell:
         '(faidx {params.fasta} -i chromsizes > {output.chromsizes}) > {log} 2>&1'
@@ -31,7 +31,7 @@ rule gencode_utr_fix:
 
 rule lapa_config:
     input:
-        bams = expand(os.path.join(config['alignment_dir'], '{sample}_aligned.bam'), sample=util.get_experiments(config)),
+        bams = expand(os.path.join(config['alignment_dir'], '{sample}_aligned.bam'), sample=util.experiments),
     output:
         samples = 'results/lapa/samples.csv'
     threads: 4
@@ -42,8 +42,8 @@ rule lapa_config:
     run:
         with open(output['samples'], 'w') as f:
             df = pd.DataFrame()
-            for sample in util.get_samples(config):
-                df = pd.concat([df, pd.DataFrame({'sample': sample, 'dataset': util.get_tissue_for_sample(config, sample), 'path': util.get_alignment_for_sample(config, sample)}, index=[0])])
+            for sample in util.samples:
+                df = pd.concat([df, pd.DataFrame({'sample': sample, 'dataset': util.tissue_for_sample(sample), 'path': util.alignment_for_sample(sample)}, index=[0])])
             df.to_csv(f, index=False)
 
 rule lapa_tes:
@@ -55,7 +55,7 @@ rule lapa_tes:
         directory('results/lapa/tes'),
         'results/lapa/tes/polyA_clusters.bed'
     params:
-        fasta = config["genome_fa"],
+        fasta = config["reference_fa"],
         output_dir = 'results/lapa/tes/',
         min_replication_rate = 0.75
     log:
@@ -78,7 +78,7 @@ rule lapa_tss:
         directory('results/lapa/tss'),
         'results/lapa/tss/tss_clusters.bed'
     params:
-        fasta = config["genome_fa"],
+        fasta = config["reference_fa"],
         output_dir = 'results/lapa/tss/',
         min_replication_rate = 0.75
     log:
