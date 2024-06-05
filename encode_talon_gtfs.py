@@ -2,7 +2,7 @@ import requests
 import os
 import pandas as pd
 
-sample_df = pd.read_csv("/project/hfa_work/ENCODE/data/reads/metadata_tissue_full.tsv", sep="\t")
+sample_df = pd.read_csv("/project/hfa_work/ENCODE/data/reads/metadata_tissue.tsv", sep="\t")
 
 encode_url = "https://www.encodeproject.org"
 
