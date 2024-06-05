@@ -4,7 +4,7 @@ import pandas as pd
 
 rule cerberus:
     input:
-        annotated_gtfs = expand('results/cerberus/replace_gtf_ids/{sample}.gtf', sample=util.get_samples(config)),
+        annotated_gtfs = expand('results/cerberus/replace_gtf_ids/{sample}.gtf', sample=util.samples),
 
 rule filter_gtf:
     '''Filters out `source` attribute from the gtf. Would throw an error in cerberus_gtf_to_bed and is redundant anyways.'''
@@ -67,7 +67,7 @@ rule cerberus_agg_ends_config:
     '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
     input:
         ref = 'results/cerberus/reference_{mode}.bed',
-        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.get_samples(config))
+        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.samples)
     output:
         config = 'results/cerberus/configs/agg_ends_{mode}.csv'
     run:
@@ -79,7 +79,7 @@ rule cerberus_agg_ends_config:
 rule cerberus_agg_ends:
     input:
         ref = 'results/cerberus/reference_{mode}.bed',
-        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.get_samples(config)),
+        bed = expand('results/cerberus/triplet/{{mode}}/{sample}.bed', sample=util.samples),
         config = 'results/cerberus/configs/agg_ends_{mode}.csv'
     output:
         bed = 'results/cerberus/agg_{mode}.bed'
@@ -93,7 +93,7 @@ rule cerberus_agg_ends:
 #     '''Creates a headerless csv file with BED file path, Reference (bool), Add ends (Bool), Source name'''
 #     input:
 #         ref = 'results/cerberus/reference_ics.ics',
-#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config))
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.samples)
 #     output:
 #         config = 'results/cerberus/configs/agg_ics.csv'
 #     run:
@@ -105,7 +105,7 @@ rule cerberus_agg_ends:
 # rule cerberus_agg_ics:
 #     input:
 #         ref = 'results/cerberus/reference_ics.ics',
-#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config)),
+#         ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.samples),
 #         config = 'results/cerberus/configs/agg_ics.csv'
 #     output:
 #         tsv = 'results/cerberus/agg_ics.tsv'
@@ -122,7 +122,7 @@ rule cerberus_agg_ends:
 rule cerberus_agg_ics_script:
     input:
         ref = 'results/cerberus/reference_ics.ics',
-        ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.get_samples(config)),
+        ics = expand('results/cerberus/triplet/ics/{sample}.ics', sample=util.samples),
     output:
         tsv = 'results/cerberus/agg_ics.tsv',
         config = 'results/cerberus/configs/agg_ics.csv'

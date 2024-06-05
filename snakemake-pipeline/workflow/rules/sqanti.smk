@@ -6,7 +6,7 @@ rule sqanti3_qc:
     # output:
     # TODO
     params:
-        ref_fa = config["genome_fa"],
+        ref_fa = config["reference_fa"],
         # TODO: --CAGE_peak CAGE data
         # TODO: --short_reads short read data
         # TODO: --polyA_motif_list, provided by SQANTI repo?

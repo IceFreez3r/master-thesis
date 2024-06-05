@@ -1,21 +1,30 @@
 # Directory paths
-reads_dir: /project/hfa_work/ENCODE/data/reads
 alignment_dir: /project/hfa_work/ENCODE/data/alignment_v45
 annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_45/gencode.v45.annotation.gtf.gz
+annot_gff: /project/hfa_work/ENCODE/data/gencode_human/version_45/gencode.v45.chr_patch_hapl_scaff.annotation_sorted.gff3.gz
 # GENCODE or Ensembl
 annot_source: GENCODE
-genome_fa: /project/hfa_work/ENCODE/data/gencode_human/version_45/GRCh38.p14.genome.fa
+reference_fa: /project/hfa_work/ENCODE/data/gencode_human/version_45/GRCh38.p14.genome.fa
 genome_name: GRCh38
 annot_name: gencode_v45
 sequencing_platform: Sequel II
 
+# additional columns are allowed and ignored for all of these
+# tsv file with "sample ID", "group" and "file"
 sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue.tsv
-# tsv file with sample ID matching the IDs above and the file path to the transcriptome in .gtf.gz format
+# tsv file with "sample ID" matching the IDs above and the path in the "file" column
+rnaseq_table: /project/hfa_work/ENCODE/data/rna_seq/metadata_tissue_rnaseq_fastq.tsv
+# tsv file with "sample ID" matching the IDs above and the "file" path to the transcriptome in .gtf.gz format
 transcriptome_table: /project/hfa_work/ENCODE/data/talon_gtf/gtf_metadata.tsv
+
+isotools:
+  coverage_threshold: 10
+  query: "BALANCED"
 
 # If true input files to talon will be copied to $TMPDIR before running talon
 # Useful if IO is slow
-talon_use_tmpdir: true
+talon:
+  use_tmpdir: true
 
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge3/bin

@@ -1,16 +1,18 @@
 import os
 import pandas as pd
 import glob
-import util
 
 configfile: "config/config.yaml"
 
 # Hacky attempt to make conda work
 os.environ["PATH"]= config["path_to_conda"] + os.pathsep + os.environ["PATH"]
 
+include: "rules/common.smk"
+include: "rules/preprocessing.smk"
 include: "rules/cage.smk"
 include: "rules/cerberus.smk"
 include: "rules/flair.smk"
+include: "rules/isotools.smk"
 include: "rules/lapa.smk"
 include: "rules/talon.smk"
 include: "rules/sqanti.smk"
@@ -18,31 +20,3 @@ include: "rules/sqanti.smk"
 rule all:
     input:
         "output/plot.png"
-
-rule unzip_annotation:
-    output:
-        "resources/annotation.gtf"
-    params:
-        gtf_gz = config["annot_gtf"]
-    shell:
-        "gunzip -c {params.gtf_gz} > {output}"
-
-rule unzip_transcriptome:
-    output:
-        gtfs = expand("resources/transcriptome/{sample}.gtf", sample=util.get_samples(config)),
-    params:
-        samples = config["transcriptome_table"]
-    run:
-        df = pd.read_csv(params["samples"], sep="\t")
-        for i, row in df.iterrows():
-            sample = row["sample ID"]
-            gtf_gz = row["gtf"]
-            shell("gunzip -c {gtf_gz} > resources/transcriptome/{sample}.gtf")
-
-rule unzip_reference_annotation:
-    output:
-        "resources/reference_annotation.gtf"
-    params:
-        gtf_gz = config["annot_gtf"]
-    shell:
-        "gunzip -c {params.gtf_gz} > {output}"
