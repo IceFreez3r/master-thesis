@@ -10,15 +10,15 @@ rule talon:
 
 rule talon_label_reads:
     input:
-        bam=os.path.join(config["alignment_dir"], "{experiment}_aligned.bam"),
+        bam="resources/mapped_reads/{sample}.bam",
     output:
-        sam="results/talon/labeled/{experiment}_labeled.sam",
-        tsv="results/talon/labeled/{experiment}_read_labels.tsv",
+        sam="results/talon/labeled/{sample}_labeled.sam",
+        tsv="results/talon/labeled/{sample}_read_labels.tsv",
     params:
         genome=config["reference_fa"],
-        output_prefix="results/talon/labeled/{experiment}",
+        output_prefix="results/talon/labeled/{sample}",
     log:
-        "logs/talon/label_reads/{experiment}.log",
+        "logs/talon/label_reads/{sample}.log",
     threads: 8
     resources:
         mem_mib=32 * 1024,
@@ -55,7 +55,7 @@ rule talon_initialize_database:
 # rule talon_config:
 #     '''creates a csv file with dataset name, sample description, platform, sam file'''
 #     input:
-#         sample_sams = expand('results/talon/labeled/{experiment}_labeled.sam', experiment=util.experiments)
+#         sample_sams = expand('results/talon/labeled/{sample}_labeled.sam', sample=util.samples)
 #     output:
 #         csv = 'results/talon/config.csv'
 #     params:
@@ -78,8 +78,8 @@ rule talon_run:
     input:
         db="results/talon/talon.db",
         sample_sams=expand(
-            "results/talon/labeled/{experiment}_labeled.sam",
-            experiment=util.experiments,
+            "results/talon/labeled/{sample}_labeled.sam",
+            sample=util.samples,
         ),
     output:
         config="results/talon/config.csv",

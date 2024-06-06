@@ -30,9 +30,9 @@ class Utility:
         reads = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         return reads
 
-    def rnaseq_reads_for_sample(self, sample):
-        reads = self.rnaseq_df[self.rnaseq_df["sample ID"] == sample]["file"].values[0]
-        return reads
+    def rnaseq_alignment_for_sample(self, sample):
+        alignment = self.rnaseq_df[self.rnaseq_df["sample ID"] == sample]["file"].values[0]
+        return alignment
 
     def experiment_for_sample(self, sample):
         experiment = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
@@ -43,9 +43,6 @@ class Utility:
         tissue = self.sample_df[self.sample_df["sample ID"] == sample]["group"].values[0]
         return tissue
 
-    def alignment_for_sample(self, sample):
-        return os.path.join(self.config['alignment_dir'], experiment_for_sample(self.config, sample) + '_aligned.bam')
-
 
     def samples_for_tissue(self, tissue):
         samples = self.sample_df[self.sample_df["group"] == tissue]["sample ID"].tolist()
@@ -54,5 +51,8 @@ class Utility:
     def longreads_for_tissue(self, tissue):
         return self.sample_df[self.sample_df["group"] == tissue]["file"].tolist()
 
+    def rnaseq_alignments_for_tissue(self, tissue):
+        samples = self.samples_for_tissue(tissue)
+        return self.rnaseq_df[self.rnaseq_df["sample ID"].isin(samples)]["file"].tolist()
 
 util = Utility(config)
