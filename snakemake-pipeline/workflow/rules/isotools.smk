@@ -1,23 +1,28 @@
 rule isotools:
     input:
-        expand("results/isotools/{tissue}.gtf", tissue=util.tissues)
+        expand("results/isotools/gtf/{tissue}.gtf", tissue=util.tissues)
 
 rule isotools_create:
     input:
         bams=expand("resources/mapped_reads/{sample}_sorted.bam", sample=util.samples),
         bais=expand("resources/mapped_reads/{sample}_sorted.bam.bai", sample=util.samples),
+        annotation_gff=config["annot_gff"],
+        annotation_tbi=config["annot_gff"] + ".tbi",
+        reference_fa=config["reference_fa"],
+        sample_table=config["sample_table"],
     output:
-        pkl="resources/isotools/isotools.pkl",
-        gtf="resources/isotools/isotools.gtf",
+        pkl="results/isotools/isotools.pkl",
+        gtf="results/isotools/isotools.gtf",
     log:
         "logs/isotools/create.log",
     params:
-        reference_fa=config["reference_fa"],
-        annotation_gff=config["annot_gff"],
         samples=util.samples,
         tissues=util.tissues,
-        sample_table=config["sample_table"],
         coverage_threshold=config['isotools']["coverage_threshold"],
+    threads: 1
+    resources:
+        mem_mib=64 * 1024,
+        runtime_min=6 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment
         "isotools",
@@ -26,14 +31,19 @@ rule isotools_create:
 
 rule isotools_tissues:
     input:
-        pkl="resources/isotools/isotools.pkl",
+        pkl="results/isotools/isotools.pkl",
     output:
-        tissue_gtfs=expand("results/isotools/{tissue}.gtf", tissue=util.tissues),
+        tissue_gtfs=expand("results/isotools/gtf/{tissue}.gtf", tissue=util.tissues),
     log:
         "logs/isotools/tissues.log",
     params:
         tissues=util.tissues,
         query=config['isotools']["query"],
+        output_prefix="results/isotools/gtf/",
+    threads: 1
+    resources:
+        mem_mib=16 * 1024,
+        runtime_min=2 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment
         "isotools",

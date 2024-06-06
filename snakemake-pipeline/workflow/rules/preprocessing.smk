@@ -1,10 +1,16 @@
+localrules:
+    index_bam,
+
+
 rule unzip_annotation:
+    input:
+        gtf_gz=config["annot_gtf"],
     output:
         "resources/annotation.gtf",
-    params:
-        gtf_gz=config["annot_gtf"],
+    log:
+        "logs/common/unzip_annotation.log",
     shell:
-        "gunzip -c {params.gtf_gz} > {output}"
+        "(gunzip -c {input.gtf_gz} > {output}) > {log} 2>&1"
 
 
 rule unzip_transcriptome:
@@ -38,8 +44,11 @@ rule minimap_index:
     log:
         "logs/common/minimap_index.log",
     threads: 32
+    resources:
+        mem_mib=32 * 1024,
+        runtime_min=60,
     params:
-        extra= "-x splice:hq"
+        extra="-x splice:hq",
     wrapper:
         "v3.11.0/bio/minimap2/index"
 
@@ -56,7 +65,7 @@ rule minimap_align_longreads:
         "logs/common/minimap2_align/longreads/{sample}.log",
     params:
         sorting="coordinate",
-        extra="-ax splice:hq -uf --MD"
+        extra="-ax splice:hq -uf --MD",
     conda:
         "../envs/minimap2.yaml"
     threads: 8
@@ -71,13 +80,15 @@ rule minimap_align_longreads:
         ) > {log} 2>&1
         """
 
+
 rule index_bam:
     input:
-        bam="resources/mapped_reads/{sample}_sorted.bam"
+        bam="resources/mapped_reads/{sample}_sorted.bam",
     output:
-        bai="resources/mapped_reads/{sample}_sorted.bam.bai"
+        bai="resources/mapped_reads/{sample}_sorted.bam.bai",
     shell:
         "samtools index {input.bam}"
+
 
 # rule index_gff_annotation:
 #     input:

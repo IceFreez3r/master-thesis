@@ -14,9 +14,14 @@ include: "rules/cerberus.smk"
 include: "rules/flair.smk"
 include: "rules/isotools.smk"
 include: "rules/lapa.smk"
+include: "rules/rnaseq.smk"
 include: "rules/talon.smk"
 include: "rules/sqanti.smk"
 
 rule all:
     input:
         "output/plot.png"
+
+rule tissue_gtfs:
+    input:
+        expand("results/{tool}/gtf/{tissue}.gtf", tool=["flair", "isotools"], tissue=util.tissues)

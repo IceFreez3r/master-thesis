@@ -8,7 +8,7 @@ encode_url = "https://www.encodeproject.org"
 
 data_dir = "/project/hfa_work/ENCODE/data/rna_seq/"
 
-rnaseq_metadata = pd.DataFrame(columns=['sample ID', 'BAM'])
+rnaseq_metadata = pd.DataFrame(columns=['sample ID', 'file'])
 
 for i, sample_row in sample_df.iterrows():
     sample_id = sample_row['sample ID']
@@ -58,6 +58,6 @@ for i, sample_row in sample_df.iterrows():
         print(f"Downloaded BAM file for sample {sample_id}")
     else:
         print(f"BAM file for sample {sample_id} already exists.")
-    rnaseq_metadata = pd.concat([rnaseq_metadata, pd.DataFrame({'sample ID': sample_id, 'BAM': f"{data_dir}{filename}"}, index=[0])], ignore_index=True)
+    rnaseq_metadata = pd.concat([rnaseq_metadata, pd.DataFrame({'sample ID': sample_id, 'file': f"{data_dir}{filename}"}, index=[0])], ignore_index=True)
 
 rnaseq_metadata.to_csv(f"{data_dir}rnaseq_metadata.tsv", sep="\t", index=False)

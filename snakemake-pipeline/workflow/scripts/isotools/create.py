@@ -9,13 +9,13 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO, file
 logger = logging.getLogger("isotools")
 logger.info(f"This is isotools version {isotools_version}")
 
-genome_path = snakemake.params.reference_fa
-annotation_gff = snakemake.params.annotation_gff
+genome_path = snakemake.input.reference_fa
+annotation_gff = snakemake.input.annotation_gff
+metadata_path = snakemake.input.sample_table
+alignments = snakemake.input.bams
 
 samples = snakemake.params.samples
 tissues = snakemake.params.tissues
-alignments = snakemake.input.bams
-metadata_path = snakemake.params.sample_table
 metadata = pd.read_csv(metadata_path, sep="\t")
 
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)

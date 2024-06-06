@@ -31,20 +31,18 @@ rule gencode_utr_fix:
 
 rule lapa_config:
     input:
-        bams = expand(os.path.join(config['alignment_dir'], '{sample}_aligned.bam'), sample=util.experiments),
+        bams = expand(os.path.join("resources/mapped_reads", '{sample}_sorted.bam'), sample=util.samples),
+        bais = expand(os.path.join("resources/mapped_reads", '{sample}_sorted.bam.bai'), sample=util.samples),
     output:
-        samples = 'results/lapa/samples.csv'
+        config = 'results/lapa/samples.csv'
     threads: 4
     resources:
         mem_mib = 4 * 1024,
         runtime_min = 5,
     log: 'logs/lapa/config.log'
     run:
-        with open(output['samples'], 'w') as f:
-            df = pd.DataFrame()
-            for sample in util.samples:
-                df = pd.concat([df, pd.DataFrame({'sample': sample, 'dataset': util.tissue_for_sample(sample), 'path': util.alignment_for_sample(sample)}, index=[0])])
-            df.to_csv(f, index=False)
+        df = pd.DataFrame({'sample': samples, 'dataset': [util.tissue_for_sample(sample) for sample in samples], 'path': [f"resources/mapped_reads/{sample}_sorted.bam" for sample in samples]})
+        df.to_csv(output.config, index=False)
 
 rule lapa_tes:
     input:
