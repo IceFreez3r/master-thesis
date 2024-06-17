@@ -2,7 +2,7 @@ import os
 
 
 localrules:
-    flair_ln_gtf,
+    flair_tissue_gtfs,
 
 
 rule flair:
@@ -97,10 +97,14 @@ rule flair_collapse:
         "flair collapse --query {input.bed12} --genome {params.reference_fa} --reads {input.reads} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
 
 
-rule flair_ln_gtf:
+rule flair_tissue_gtfs:
     input:
-        gtf="results/flair/collapse/{tissue}.isoforms.gtf",
+        gtf=expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
     output:
-        "results/flair/gtf/{tissue}.gtf",
-    shell:
-        "ln -s {input.gtf} {output}"
+        "results/flair/tissue_gtfs.fofn",
+    run:
+        # tsv with tissue and file path
+        with open(output[0], "w") as f:
+            for tissue in util.tissues:
+                path = os.path.join(os.getcwd(), "results/flair/collapse", f"{tissue}.isoforms.gtf")
+                f.write(f"flair\t{tissue}\t{path}\n")
