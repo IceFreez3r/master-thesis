@@ -56,3 +56,22 @@ class Utility:
         return self.rnaseq_df[self.rnaseq_df["sample ID"].isin(samples)]["file"].tolist()
 
 util = Utility(config)
+
+rule samtools_index:
+    input:
+        "{sample}.bam"
+    output:
+        "{sample}.bam.bai"
+    shell:
+        "samtools index {input}"
+
+rule tissue_gtfs:
+    input:
+        expand(
+            "results/{tool}/tissue_gtfs.fofn",
+            tool=["flair", "isotools"],
+        ),
+    output:
+        "results/tissues_gtf.fofn",
+    shell:
+        "cat {input} > {output}"

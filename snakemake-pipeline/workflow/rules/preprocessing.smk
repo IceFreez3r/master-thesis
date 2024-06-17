@@ -1,7 +1,3 @@
-localrules:
-    index_bam,
-
-
 rule unzip_annotation:
     input:
         gtf_gz=config["annot_gtf"],
@@ -53,7 +49,6 @@ rule minimap_index:
         "v3.11.0/bio/minimap2/index"
 
 
-# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/minimap2/aligner.html
 rule minimap_align_longreads:
     input:
         query=lambda wildcards: util.longreads_for_sample(wildcards.sample),
@@ -79,16 +74,6 @@ rule minimap_align_longreads:
             samtools sort -O BAM -@ {threads} -o {output.bam_sorted} {output.bam}
         ) > {log} 2>&1
         """
-
-
-rule index_bam:
-    input:
-        bam="resources/mapped_reads/{sample}_sorted.bam",
-    output:
-        bai="resources/mapped_reads/{sample}_sorted.bam.bai",
-    shell:
-        "samtools index {input.bam}"
-
 
 # rule index_gff_annotation:
 #     input:

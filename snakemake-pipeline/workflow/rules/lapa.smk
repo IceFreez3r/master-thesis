@@ -41,6 +41,8 @@ rule lapa_config:
         runtime_min = 5,
     log: 'logs/lapa/config.log'
     run:
+        os.makedirs("results/lapa/", exist_ok=True)
+        samples = util.samples
         df = pd.DataFrame({'sample': samples, 'dataset': [util.tissue_for_sample(sample) for sample in samples], 'path': [f"resources/mapped_reads/{sample}_sorted.bam" for sample in samples]})
         df.to_csv(output.config, index=False)
 
