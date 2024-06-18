@@ -55,7 +55,7 @@ rule lapa_tes:
         directory('results/lapa/tes'),
         'results/lapa/tes/polyA_clusters.bed'
     params:
-        fasta = config["reference_fa"],
+        fasta = "resources/reference.fa",
         output_dir = 'results/lapa/tes/',
         min_replication_rate = 0.75
     log:
@@ -78,7 +78,7 @@ rule lapa_tss:
         directory('results/lapa/tss'),
         'results/lapa/tss/tss_clusters.bed'
     params:
-        fasta = config["reference_fa"],
+        fasta = "resources/reference.fa",
         output_dir = 'results/lapa/tss/',
         min_replication_rate = 0.75
     log:

@@ -11,11 +11,11 @@ rule talon:
 rule talon_label_reads:
     input:
         bam="resources/mapped_reads/{sample}.bam",
+        genome="resources/reference.fa",
     output:
         sam="results/talon/labeled/{sample}_labeled.sam",
         tsv="results/talon/labeled/{sample}_read_labels.tsv",
     params:
-        genome=config["reference_fa"],
         output_prefix="results/talon/labeled/{sample}",
     log:
         "logs/talon/label_reads/{sample}.log",
@@ -28,7 +28,7 @@ rule talon_label_reads:
     conda:
         "../envs/talon.yaml"
     shell:
-        "talon_label_reads --g {params.genome} --f {input.bam} --t {threads} --o {params.output_prefix} > {log} 2>&1"
+        "talon_label_reads --g {input.genome} --f {input.bam} --t {threads} --o {params.output_prefix} > {log} 2>&1"
 
 
 rule talon_initialize_database:

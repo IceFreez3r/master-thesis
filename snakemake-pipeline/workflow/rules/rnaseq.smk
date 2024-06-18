@@ -14,7 +14,7 @@ rule rnaseq_depth:
         bais=lambda wildcards: expand(
             "{bam}.bai", bam=util.rnaseq_alignments_for_tissue(wildcards.tissue)
         ),
-        bed="results/tss_{side}_{tool}_{tissue}.bed",
+        bed="results/tss_ratio/tss_{side}_{tool}_{tissue}.bed",
     output:
         "results/rnaseq/depth_{side}_{tool}_{tissue}.txt",
     log:

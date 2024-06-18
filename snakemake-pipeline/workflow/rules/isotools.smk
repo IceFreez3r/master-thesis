@@ -15,7 +15,8 @@ rule isotools_create:
         ),
         annotation_gff=config["annot_gff"],
         annotation_tbi=config["annot_gff"] + ".tbi",
-        reference_fa=config["reference_fa"],
+        reference_fa="resources/reference.fa",
+        reference_fai="resources/reference.fa.fai",
         sample_table=config["sample_table"],
     output:
         pkl="results/isotools/isotools.pkl",

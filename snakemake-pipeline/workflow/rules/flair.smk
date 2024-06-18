@@ -61,7 +61,7 @@ rule flair_correct:
     log:
         "logs/flair/correct/{tissue}_all_corrected.log",
     params:
-        reference_fa=config["reference_fa"],
+        reference_fa="resources/reference.fa",
         output_prefix=lambda wildcards: "results/flair/correct/" + wildcards.tissue,
     threads: 8
     resources:
@@ -85,7 +85,7 @@ rule flair_collapse:
     log:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
-        reference_fa=config["reference_fa"],
+        reference_fa="resources/reference.fa",
         output_prefix=lambda wildcards: "results/flair/collapse/" + wildcards.tissue,
     threads: 8
     resources:

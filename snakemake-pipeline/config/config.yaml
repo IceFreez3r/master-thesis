@@ -1,13 +1,11 @@
-# Directory paths
-alignment_dir: /path/to/data/alignment_v45
-annot_gtf: /path/to/data/gencode_human/version_46/gencode.v45.annotation.gtf.gz
+annot_gtf: /path/to/data/gencode_human/version_46/gencode.v46.annotation.gtf.gz
 # needs to be bgzf compressed and have a .tbi index
 annot_gff: /path/to/data/gencode_human/version_46/gencode.v46.annotation_sorted.gff3.gz
 # GENCODE or Ensembl
 annot_source: GENCODE
 reference_fa: /path/to/data/gencode_human/version_46/GRCh38.p14.genome.fa
 genome_name: GRCh38
-annot_name: gencode_v45
+annot_name: gencode_v46
 sequencing_platform: Sequel II
 
 # additional columns are allowed and ignored for all of these
