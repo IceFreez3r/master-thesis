@@ -22,19 +22,10 @@ rule unzip_transcriptome:
             shell("gunzip -c {gtf_gz} > resources/transcriptome/{sample}.gtf")
 
 
-rule unzip_reference_annotation:
-    input:
-        gtf_gz=config["annot_gtf"],
-    output:
-        "resources/reference_annotation.gtf",
-    shell:
-        "gunzip -c {input.gtf_gz} > {output}"
-
-
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/minimap2/index.html
 rule minimap_index:
     input:
-        target=config["reference_fa"],
+        target="resources/reference.fa",
     output:
         "resources/reference_genome.mmi",
     log:

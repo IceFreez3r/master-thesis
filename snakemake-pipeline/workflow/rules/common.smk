@@ -57,6 +57,31 @@ class Utility:
 
 util = Utility(config)
 
+rule preprocess_reference:
+    """Removes scaffolds from the reference"""
+    input:
+        config["reference_fa"],
+    output:
+        "resources/reference.fa",
+    run:
+        with open(input[0]) as f, open(output[0], "w") as out:
+            copy = True
+            for line in f:
+                if line.startswith(">"):
+                    copy = line.startswith(">chr")
+                if copy:
+                    out.write(line)
+
+
+rule index_reference:
+    input:
+        "resources/reference.fa"
+    output:
+        "resources/reference.fa.fai"
+    shell:
+        "samtools faidx {input}"
+
+
 rule samtools_index:
     input:
         "{sample}.bam"
