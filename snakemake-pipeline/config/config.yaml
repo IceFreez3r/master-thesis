@@ -20,6 +20,10 @@ isotools:
   coverage_threshold: 10
   query: "BALANCED"
 
+stringtie:
+  # Stringtie needs manual building with make, the path to the binary is needed
+  path: /project/hfa_work/ENCODE/code/stringtie/stringtie
+
 talon:
   # If true, input files to talon will be copied to $TMPDIR before running talon, useful if IO is slow
   use_tmpdir: true
