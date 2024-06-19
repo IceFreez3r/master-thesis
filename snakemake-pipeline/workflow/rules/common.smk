@@ -94,7 +94,7 @@ rule tissue_gtfs:
     input:
         expand(
             "results/{tool}/tissue_gtfs.fofn",
-            tool=["flair", "isotools"],
+            tool=["flair", "isotools", "stringtie"],
         ),
     output:
         "results/tissues_gtf.fofn",
