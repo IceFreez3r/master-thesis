@@ -2,6 +2,8 @@ import pandas as pd
 import glob
 import os
 
+WORKING_TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
+
 class Utility:
     def __init__(self, config):
         self.config = config
@@ -94,7 +96,7 @@ rule tissue_gtfs:
     input:
         expand(
             "results/{tool}/tissue_gtfs.fofn",
-            tool=["flair", "isotools", "stringtie"],
+            tool=WORKING_TOOLS,
         ),
     output:
         "results/tissues_gtf.fofn",
