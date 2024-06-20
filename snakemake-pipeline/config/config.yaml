@@ -29,7 +29,7 @@ talon:
   use_tmpdir: true
 
 # cluster couldn't find conda
-path_to_conda: /home/lankenau/miniforge3/bin
+path_to_conda: /home/lankenau/miniforge-pypy3/bin
 
 # Searched for CAGE files matching the tissues from the sample table
 # File name needs to contain the tissue name
