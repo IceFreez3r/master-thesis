@@ -7,12 +7,12 @@ localrules:
 
 rule flair:
     input:
-        expand("results/flair/gtf/{tissue}.gtf", tissue=util.tissues),
+        expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
         # expand("results/flair/collapse/{tissue}.isoforms.bed", tissue=util.tissues),
         # expand("results/flair/collapse/{tissue}.isoforms.fa", tissue=util.tissues),
 
 
-rule bam_to_bed12:
+rule flair_bam_to_bed12:
     input:
         bam="resources/mapped_reads/{sample}_sorted.bam",
     output:
@@ -32,7 +32,7 @@ rule bam_to_bed12:
         """
 
 
-rule combine_bed12:
+rule flair_combine_bed12:
     input:
         bed12=lambda wildcards: expand(
             "resources/bed12/{sample}.bed12",
