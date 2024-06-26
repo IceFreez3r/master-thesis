@@ -15,6 +15,7 @@ rule flair:
 rule flair_bam_to_bed12:
     input:
         bam="resources/mapped_reads/{sample}_sorted.bam",
+        bai="resources/mapped_reads/{sample}_sorted.bam.bai",
     output:
         bed12="resources/bed12/{sample}.bed12",
     log:

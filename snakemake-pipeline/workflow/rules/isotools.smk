@@ -29,7 +29,7 @@ rule isotools_create:
         coverage_threshold=config["isotools"]["coverage_threshold"],
     threads: 1
     resources:
-        mem_mib=64 * 1024,
+        mem_mib=128 * 1024,
         runtime_min=6 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment
