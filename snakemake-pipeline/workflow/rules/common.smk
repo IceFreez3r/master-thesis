@@ -89,8 +89,10 @@ rule samtools_index:
         "{sample}.bam"
     output:
         "{sample}.bam.bai"
+    log:
+        "logs/common/samtools_index/{sample}.log"
     shell:
-        "samtools index {input}"
+        "samtools index {input} > {log} 2>&1"
 
 rule tissue_gtfs:
     input:

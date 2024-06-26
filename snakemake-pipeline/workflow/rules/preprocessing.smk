@@ -37,7 +37,7 @@ rule minimap_index:
     params:
         extra="-x splice:hq",
     wrapper:
-        "v3.11.0/bio/minimap2/index"
+        "v3.12.1/bio/minimap2/index"
 
 
 rule minimap_align_longreads:
@@ -65,6 +65,7 @@ rule minimap_align_longreads:
             samtools sort -O BAM -@ {threads} -o {output.bam_sorted} {output.bam}
         ) > {log} 2>&1
         """
+
 
 # rule index_gff_annotation:
 #     input:

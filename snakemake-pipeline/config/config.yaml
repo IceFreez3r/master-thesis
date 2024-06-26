@@ -17,7 +17,7 @@ rnaseq_table: /path/to/data/rna_seq/metadata_tissue_rnaseq_bam.tsv
 transcriptome_table: /path/to/data/talon_gtf/gtf_metadata.tsv
 
 isotools:
-  coverage_threshold: 10
+  coverage_threshold: 0
   query: "BALANCED"
 
 stringtie:

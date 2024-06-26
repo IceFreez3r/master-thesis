@@ -46,30 +46,5 @@ for tissue in tissues:
     )
     logger.info(f"Added filter {filter_name} for tissue {tissue}: {expression}")
 
-isoseq.add_filter(
-    tag="HIGH_COVER",
-    expression="g.coverage.sum(0)[trid] >= 7",
-    context="transcript",
-    update=True,
-)
-isoseq.add_filter(
-    tag="PERMISSIVE",
-    expression="FSM or not (RTTS or INTERNAL_PRIMING or FRAGMENT)",
-    context="transcript",
-    update=True,
-)
-isoseq.add_filter(
-    tag="BALANCED",
-    expression="FSM or (HIGH_COVER and not (RTTS or FRAGMENT or INTERNAL_PRIMING))",
-    context="transcript",
-    update=True,
-)
-isoseq.add_filter(
-    tag="STRICT",
-    expression="SUBSTANTIAL and (FSM or not (RTTS or FRAGMENT or INTERNAL_PRIMING))",
-    context="transcript",
-    update=True,
-)
-
 isoseq.save(snakemake.output.pkl)
 isoseq.write_gtf(snakemake.output.gtf, min_coverage=5, gzip=False, query="")
