@@ -21,7 +21,7 @@ rule talon_label_reads:
         "logs/talon/label_reads/{sample}.log",
     threads: 8
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     shadow:
         "shallow"  # call generates temp files
@@ -44,7 +44,7 @@ rule talon_initialize_database:
         "logs/talon/init_db.log",
     threads: 8
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     conda:
         "../envs/talon.yaml"
@@ -95,7 +95,7 @@ rule talon_run:
         sequencing_platform=config["sequencing_platform"],
     threads: 64
     resources:
-        mem_mib=800 * 1024,
+        mem_mb=800 * 1024,
         runtime_min=lambda wildcards, attempt: 24 * 60 * attempt**2,
         disk_mib=800 * 1024,
     conda:
@@ -118,7 +118,7 @@ rule talon_abundance:
         output_prefix="results/talon/",
     threads: 32
     resources:
-        mem_mib=400 * 1024,
+        mem_mb=400 * 1024,
         runtime_min=lambda wildcards, attempt: 120 * attempt**2,
         disk_mib=400 * 1024,
     conda:
@@ -142,7 +142,7 @@ rule talon_filter_transcripts:
         minDatasets=2,
     threads: 32
     resources:
-        mem_mib=400 * 1024,
+        mem_mb=400 * 1024,
         runtime_min=lambda wildcards, attempt: 120 * attempt**2,
         disk_mib=400 * 1024,
     conda:
@@ -167,7 +167,7 @@ rule talon_create_GTF:
         samples=lambda wildcards: "\n".join(util.samples_for_tissue(wildcards.tissue)),
     threads: 32
     resources:
-        mem_mib=400 * 1024,
+        mem_mb=400 * 1024,
         runtime_min=lambda wildcards, attempt: 120 * attempt**2,
         disk_mib=400 * 1024,
     conda:
@@ -192,7 +192,7 @@ rule talon_create_adata:
         annot_name=config["annot_name"],
     threads: 32
     resources:
-        mem_mib=400 * 1024,
+        mem_mb=400 * 1024,
         runtime_min=lambda wildcards, attempt: 120 * attempt**2,
         disk_mib=400 * 1024,
     conda:

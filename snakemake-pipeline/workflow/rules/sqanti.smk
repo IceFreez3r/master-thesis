@@ -1,32 +1,66 @@
-rule sqanti3_qc:
-    input:
-        gtf = "results/talon/gtfs/{sample}.gtf",
-        ref_gtf = "results/annotation.gtf",
-        # cage = "resources/CAGE/{tissue}.bed", # Include in analysis?
-    # output:
-    # TODO
-    params:
-        ref_fa = "resources/reference.fa",
-        # TODO: --CAGE_peak CAGE data
-        # TODO: --short_reads short read data
-        # TODO: --polyA_motif_list, provided by SQANTI repo?
-        # TODO: --fl full-length abundance data (from talon?)
-        output_dir = "results/sqanti3/qc/{sample}/",
-        output_prefix = "results/sqanti3/qc/{sample}/",
-        report_format = "both"
-    threads: 8
-    shell:
-        # TODO: wrap in env?
-        "python sqanti3_qc.py {input.gtf} {input.ref_gtf} {params.ref_fa} -d {params.output_dir} -o {params.output_prefix} --report {params.report_format} --cpus {threads}"
+localrules:
+    sqanti_rnaseq_fofn
 
-rule sqanti3_filter:
+rule sqanti:
     input:
-        sqanti_class = "results/sqanti3/qc/{sample}/{sample}.classification.txt", # TODO
+        expand("results/sqanti/qc/this_wont_exist_{tool}_{tissue}.txt", tool=WORKING_TOOLS, tissue=util.tissues)
+
+rule sqanti_rnaseq_fofn:
+    input:
+        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_sammples_for_tissue(wildcards.tissue)),
     output:
-        classification = "results/sqanti3/filter/{filter_type}/{sample}/{sample}.classification.filtered.txt",
+        "results/sqanti/rnaseq_fofn/{tissue}.fofn"
+    run:
+        with open(output[0], 'w') as f:
+            f.write("\n".join(input.fastq))
+
+rule sqanti_qc:
+    input:
+        gtf="results/{tool}/transcriptome/{tissue}.gtf",
+        ref_gtf = "resources/annotation.gtf",
+        cage = "resources/CAGE/{tissue}.bed",
+        ref_fa = "resources/reference.fa",
+        polyA_motifs = config["sqanti"]["polyA_motif_list"],
+        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_sammples_for_tissue(wildcards.tissue)),
+        rnaseq_fastq = "results/sqanti/rnaseq_fofn/{tissue}.fofn",
+    output:
+        "results/sqanti/qc/{tool}/{tissue}/{tissue}_SQANTI3_report.html"
+    log:
+        out = "logs/sqanti/qc/{tool}/{tissue}.log",
+        error = "logs/sqanti/qc/{tool}/{tissue}.error.log"
     params:
-        output_dir = "results/sqanti3/filter/{sample}/",
-        output_prefix = "results/sqanti3/filter/{sample}/"
+        sqanti_qc=os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
+        # TODO: --fl full-length abundance data (from talon?)
+        # TODO: One of the two is probably wrong/redundant
+        output_dir = "results/sqanti/qc/{tool}/{tissue}/",
+        # output_prefix = "results/sqanti/qc/{tool}/{tissue}/",
+        extra = "--aligner_choice minimap2 --report both"
+        extra_user = config["sqanti"]["extra"]
+        # TODO: --force_id_ignore might be needed
+    threads: 16
+    resources:
+        mem_mb=128 * 1024,
+        runtime_min=8 * 60,
+    conda:
+        "../envs/sqanti.yaml"
+    shell:
+        """
+        python {params.sqanti_qc} --CAGE_peak {input.cage}\
+            --short_reads {input.rnaseq_fastq}\
+            --polyA_motif_list {input.polyA_motifs}\
+            -d {params.output_dir}\
+            {params.extra} {params.extra_user} --cpus {threads}\
+            {input.gtf} {input.ref_gtf} {input.ref_fa} > {log.out} 2> {log.error}
+        """
+
+rule sqanti_filter:
+    input:
+        sqanti_class = "results/sqanti/qc/{tissue}/{tissue}.classification.txt", # TODO
+    output:
+        classification = "results/sqanti/filter/{filter_type}/{tissue}/{tissue}.classification.filtered.txt",
+    params:
+        output_dir = "results/sqanti/filter/{tissue}/",
+        output_prefix = "results/sqanti/filter/{tissue}/"
         """
         TODO: Do I need these?
         --isoAnnotGFF3 ISOANNOTGFF3: Path to the isoAnnotLite GFF3 file that is to be filtered.
@@ -36,5 +70,7 @@ rule sqanti3_filter:
         --faa FAA: Path to the ORF prediction faa file to be filtered by SQANTI3.
         """
         # TODO: custom rule file?
+    conda:
+        "../envs/sqanti.yaml"
     shell:
         "python sqanti3_filter.py {wildcards.filter_type} {input.sqanti_class} -d {params.output_dir} -o {params.output_prefix}"

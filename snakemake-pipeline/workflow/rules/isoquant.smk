@@ -3,7 +3,7 @@ import os
 
 rule isoquant:
     input:
-        expand("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf", tissue=util.tissues),
+        expand("results/isoquant/transcriptome/{tissue}.gtf", tissue=util.tissues),
 
 
 def check_for_annotation_db(wildcards):
@@ -31,7 +31,7 @@ rule isoquant_run:
         output_folder=lambda wildcards: f"results/isoquant/{wildcards.tissue}",
     threads: 32
     resources:
-        mem_mib=512 * 1024,
+        mem_mb=512 * 1024,
         runtime_min=8 * 60,
     conda:
         "../envs/isoquant.yaml"
@@ -39,15 +39,10 @@ rule isoquant_run:
         "isoquant.py --reference {input.ref_fa} --genedb {input.annot_gtf} --bam {input.bams} --data_type pacbio_ccs -o {params.output_folder} --threads {threads} --complete_genedb --sqanti_output > {log} 2>&1"
 
 
-rule isoquant_tissue_gtfs:
+rule isoquant_transcriptomes:
     input:
-        expand("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf", tissue=util.tissues),
+        gtf="results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf",
     output:
-        "results/isoquant/tissue_gtfs.fofn",
-    run:
-        with open(output[0], "w") as f:
-            for tissue in util.tissues:
-                path = os.path.join(
-                    os.getcwd(), f"results/isoquant/{tissue}", f"OUT/OUT.transcript_models.gtf"
-                )
-                f.write(f"isoquant\t{tissue}\t{path}\n")
+        "results/isoquant/transcriptome/{tissue}.gtf",
+    shell:
+        "ln -sr {input} {output}"

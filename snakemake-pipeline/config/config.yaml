@@ -12,7 +12,9 @@ sequencing_platform: Sequel II
 # tsv file with "sample ID", "group" and "file"
 sample_table: /path/to/data/reads/metadata_tissue.tsv
 # tsv file with "sample ID" matching the IDs above and the path in the "file" column
-rnaseq_table: /path/to/data/rna_seq/metadata_tissue_rnaseq_bam.tsv
+rnaseq_fofn:
+  fastq: /path/to/data/rna_seq/metadata_tissue_rnaseq_fastq.tsv
+  bam: /path/to/data/rna_seq/metadata_tissue_rnaseq_bam.tsv
 # tsv file with "sample ID" matching the IDs above and the "file" path to the transcriptome in .gtf.gz format
 transcriptome_table: /path/to/data/talon_gtf/gtf_metadata.tsv
 
@@ -22,11 +24,19 @@ isotools:
 
 stringtie:
   # Stringtie needs manual building with make, the path to the binary is needed
-  path: /project/hfa_work/ENCODE/code/stringtie/stringtie
+  path: /path/to/code/stringtie/stringtie
 
 talon:
   # If true, input files to talon will be copied to $TMPDIR before running talon, useful if IO is slow
   use_tmpdir: true
+
+sqanti:
+  # Path to the SQANTI3 repo
+  path: /path/to/code/SQANTI3
+  # Download polyA motif list from SQANTI repo or link your own
+  polyA_motif_list: "/path/to/code/SQANTI3/data/polyA_motifs/mouse_and_human.polyA_motif.txt"
+  # see https://github.com/ConesaLab/SQANTI3/wiki/Running-SQANTI3-Quality-Control#arguments-and-parameters-in-sqanti3-qc for options
+  extra: "--ratio_TSS_metric mean"
 
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
@@ -35,6 +45,7 @@ path_to_conda: /home/lankenau/miniforge-pypy3/bin
 # File name needs to contain the tissue name
 CAGE_dir: /path/to/data/CAGE
 
-# aggregating all samples with cerberus at once can be memory intensive
-# set to None to disable
-aggregate_at_once_limit: 5
+cerberus:
+  # aggregating all samples with cerberus at once can be memory intensive
+  # set to None to disable
+  aggregate_at_once_limit: 5

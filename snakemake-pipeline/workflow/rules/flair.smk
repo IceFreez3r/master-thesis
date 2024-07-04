@@ -1,10 +1,6 @@
 import os
 
 
-localrules:
-    flair_tissue_gtfs,
-
-
 rule flair:
     input:
         expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
@@ -22,7 +18,7 @@ rule flair_bam_to_bed12:
         "logs/flair/align/bam_to_bed12_{sample}.log",
     threads: 1
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     conda:
         "../envs/flair.yaml"
@@ -43,7 +39,7 @@ rule flair_combine_bed12:
         "results/flair/{tissue}_combined.bed12",
     threads: 1
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     conda:
         "../envs/flair.yaml"
@@ -66,7 +62,7 @@ rule flair_correct:
         output_prefix=lambda wildcards: "results/flair/correct/" + wildcards.tissue,
     threads: 8
     resources:
-        mem_mib=16 * 1024,
+        mem_mb=16 * 1024,
         runtime_min=60,
     conda:
         "../envs/flair.yaml"
@@ -90,7 +86,7 @@ rule flair_collapse:
         output_prefix=lambda wildcards: "results/flair/collapse/" + wildcards.tissue,
     threads: 8
     resources:
-        mem_mib=8 * 1024,
+        mem_mb=8 * 1024,
         runtime_min=60,
     conda:
         "../envs/flair.yaml"
@@ -98,14 +94,10 @@ rule flair_collapse:
         "flair collapse --query {input.bed12} --genome {params.reference_fa} --reads {input.reads} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
 
 
-rule flair_tissue_gtfs:
+rule flair_transcriptomes:
     input:
-        gtf=expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
+        gtf="results/flair/collapse/{tissue}.isoforms.gtf",
     output:
-        "results/flair/tissue_gtfs.fofn",
-    run:
-        # tsv with tissue and file path
-        with open(output[0], "w") as f:
-            for tissue in util.tissues:
-                path = os.path.join(os.getcwd(), "results/flair/collapse", f"{tissue}.isoforms.gtf")
-                f.write(f"flair\t{tissue}\t{path}\n")
+        "results/flair/transcriptome/{tissue}.gtf",
+    shell:
+        "ln -sr {input} {output}"

@@ -11,6 +11,8 @@ rule chromsizes:
     params:
         fasta = config['reference_fa']
     log: 'logs/lapa/chromsizes.log'
+    conda:
+        'lapa'
     shell:
         '(faidx {params.fasta} -i chromsizes > {output.chromsizes}) > {log} 2>&1'
 
@@ -24,7 +26,7 @@ rule gencode_utr_fix:
     conda:
         'lapa'
     resources:
-        mem_mib = 32 * 1024,
+        mem_mb = 32 * 1024,
         runtime_min = 10,
     shell:
         'gencode_utr_fix --input_gtf {input} --output_gtf {output} > {log} 2>&1'
@@ -37,7 +39,7 @@ rule lapa_config:
         config = 'results/lapa/samples.csv'
     threads: 4
     resources:
-        mem_mib = 4 * 1024,
+        mem_mb = 4 * 1024,
         runtime_min = 5,
     log: 'logs/lapa/config.log'
     run:
@@ -62,7 +64,7 @@ rule lapa_tes:
         'logs/lapa/tes.log'
     threads: 16
     resources:
-        mem_mib = 32 * 1024,
+        mem_mb = 32 * 1024,
         runtime_min = 120,
     conda:
         'lapa'
@@ -85,7 +87,7 @@ rule lapa_tss:
         'logs/lapa/tss.log'
     threads: 16
     resources:
-        mem_mib = 32 * 1024,
+        mem_mb = 32 * 1024,
         runtime_min = 120,
     conda:
         'lapa'
@@ -106,7 +108,7 @@ rule lapa_link:
         'logs/lapa/links.log'
     threads: 16
     resources:
-        mem_mib = 32 * 1024,
+        mem_mb = 32 * 1024,
         runtime_min = 120,
     conda:
         'lapa'
