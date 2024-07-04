@@ -32,7 +32,7 @@ rule minimap_index:
         "logs/common/minimap_index.log",
     threads: 32
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     params:
         extra="-x splice:hq",
@@ -56,7 +56,7 @@ rule minimap_align_longreads:
         "../envs/minimap2.yaml"
     threads: 8
     resources:
-        mem_mib=32 * 1024,
+        mem_mb=32 * 1024,
         runtime_min=60,
     shell:
         """

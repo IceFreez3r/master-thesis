@@ -2,13 +2,18 @@ import pandas as pd
 import glob
 import os
 
+localrules:
+    preprocess_reference,
+    unzip_rnaseq_reads
+
 WORKING_TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
 
 class Utility:
     def __init__(self, config):
         self.config = config
         self.sample_df = pd.read_csv(config['sample_table'], sep="\t")
-        self.rnaseq_df = pd.read_csv(config["rnaseq_table"], sep="\t")
+        self.rnaseq_fastq = pd.read_csv(config["rnaseq_fofn"]["fastq"], sep="\t")
+        self.rnaseq_bam = pd.read_csv(config["rnaseq_fofn"]["bam"], sep="\t")
 
     @property
     def samples(self):
@@ -32,8 +37,12 @@ class Utility:
         reads = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         return reads
 
+    def rnaseq_reads_for_sample(self, sample):
+        reads = self.rnaseq_fastq[self.rnaseq_fastq["sample ID"] == sample]["file"].values[0]
+        return reads
+
     def rnaseq_alignment_for_sample(self, sample):
-        alignment = self.rnaseq_df[self.rnaseq_df["sample ID"] == sample]["file"].values[0]
+        alignment = self.rnaseq_bam[self.rnaseq_bam["sample ID"] == sample]["file"].values[0]
         return alignment
 
     def experiment_for_sample(self, sample):
@@ -50,12 +59,20 @@ class Utility:
         samples = self.sample_df[self.sample_df["group"] == tissue]["sample ID"].tolist()
         return samples
 
+    def rnaseq_sammples_for_tissue(self, tissue):
+        samples = self.samples_for_tissue(tissue)
+        return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(samples)]["sample ID"].tolist()
+
     def longreads_for_tissue(self, tissue):
         return self.sample_df[self.sample_df["group"] == tissue]["file"].tolist()
 
+    def rnaseq_reads_for_tissue(self, tissue):
+        samples = self.samples_for_tissue(tissue)
+        return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(samples)]["file"].tolist()
+
     def rnaseq_alignments_for_tissue(self, tissue):
         samples = self.samples_for_tissue(tissue)
-        return self.rnaseq_df[self.rnaseq_df["sample ID"].isin(samples)]["file"].tolist()
+        return self.rnaseq_bam[self.rnaseq_bam["sample ID"].isin(samples)]["file"].tolist()
 
 util = Utility(config)
 
@@ -104,3 +121,13 @@ rule tissue_gtfs:
         "results/tissues_gtf.fofn",
     shell:
         "cat {input} > {output}"
+
+rule unzip_rnaseq_reads:
+    input:
+        lambda wildcards: util.rnaseq_reads_for_sample(wildcards.sample)
+    output:
+        "resources/rnaseq/{sample}.fastq"
+    log:
+        "logs/common/unzip_rnaseq_reads/{sample}.log"
+    shell:
+        "(gunzip -c {input} > {output}) > {log} 2>&1"

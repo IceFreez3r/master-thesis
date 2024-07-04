@@ -12,6 +12,7 @@ os.environ["PATH"] = config["path_to_conda"] + os.pathsep + os.environ["PATH"]
 
 include: "rules/common.smk"
 include: "rules/preprocessing.smk"
+include: "rules/meta.smk"
 include: "rules/cage.smk"
 include: "rules/cerberus.smk"
 include: "rules/flair.smk"
@@ -26,5 +27,5 @@ include: "rules/talon.smk"
 
 rule all:
     input:
-        "results/tissues_gtf.fofn",
-
+        expand("results/{tool}/transcriptome/{tissue}.gtf", tool=WORKING_TOOLS, tissue=util.tissues),
+        "results/meta/dag.pdf"
