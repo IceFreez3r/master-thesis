@@ -1,6 +1,10 @@
 import os
 
 
+localrules:
+    flair_combine_bed12,
+    flair_transcriptomes
+
 rule flair:
     input:
         expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
@@ -17,9 +21,6 @@ rule flair_bam_to_bed12:
     log:
         "logs/flair/align/bam_to_bed12_{sample}.log",
     threads: 1
-    resources:
-        mem_mb=32 * 1024,
-        runtime_min=60,
     conda:
         "../envs/flair.yaml"
     shell:
@@ -38,9 +39,6 @@ rule flair_combine_bed12:
     output:
         "results/flair/{tissue}_combined.bed12",
     threads: 1
-    resources:
-        mem_mb=32 * 1024,
-        runtime_min=60,
     conda:
         "../envs/flair.yaml"
     shell:
@@ -50,7 +48,7 @@ rule flair_combine_bed12:
 rule flair_correct:
     input:
         bed12="results/flair/{tissue}_combined.bed12",
-        gtf="resources/reference_annotation.gtf",
+        gtf="resources/annotation.gtf",
     output:
         "results/flair/correct/{tissue}_all_corrected.bed",
         "results/flair/correct/{tissue}_all_inconsistent.bed",
@@ -73,7 +71,7 @@ rule flair_correct:
 rule flair_collapse:
     input:
         bed12="results/flair/correct/{tissue}_all_corrected.bed",
-        gtf="resources/reference_annotation.gtf",
+        gtf="resources/annotation.gtf",
         reads=lambda wildcards: util.longreads_for_tissue(wildcards.tissue),
     output:
         "results/flair/collapse/{tissue}.isoforms.bed",
@@ -86,8 +84,8 @@ rule flair_collapse:
         output_prefix=lambda wildcards: "results/flair/collapse/" + wildcards.tissue,
     threads: 8
     resources:
-        mem_mb=8 * 1024,
-        runtime_min=60,
+        mem_mb=64 * 1024,
+        runtime_min=2 * 60,
     conda:
         "../envs/flair.yaml"
     shell:

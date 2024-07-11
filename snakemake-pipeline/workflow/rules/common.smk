@@ -3,8 +3,9 @@ import glob
 import os
 
 localrules:
-    preprocess_reference,
-    unzip_rnaseq_reads
+    preprocess_reference_fa,
+    unzip_rnaseq_reads,
+    preprocess_polyA_peaks,
 
 WORKING_TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
 
@@ -59,7 +60,7 @@ class Utility:
         samples = self.sample_df[self.sample_df["group"] == tissue]["sample ID"].tolist()
         return samples
 
-    def rnaseq_sammples_for_tissue(self, tissue):
+    def rnaseq_samples_for_tissue(self, tissue):
         samples = self.samples_for_tissue(tissue)
         return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(samples)]["sample ID"].tolist()
 
@@ -76,7 +77,7 @@ class Utility:
 
 util = Utility(config)
 
-rule preprocess_reference:
+rule preprocess_reference_fa:
     """Removes scaffolds from the reference"""
     input:
         config["reference_fa"],
@@ -92,13 +93,26 @@ rule preprocess_reference:
                     out.write(line)
 
 
+rule unzip_annotation:
+    input:
+        gz = config["annot_gtf"]
+    output:
+        gtf = "resources/annotation.gtf"
+    log:
+        "logs/common/unzip_annotation.log"
+    shell:
+        "(gunzip -c {input.gz} > {output.gtf}) > {log} 2>&1"
+
+
 rule index_reference:
     input:
         "resources/reference.fa"
     output:
         "resources/reference.fa.fai"
+    log:
+        "logs/common/index_reference.log"
     shell:
-        "samtools faidx {input}"
+        "samtools faidx {input} > {log} 2>&1"
 
 
 rule samtools_index:
@@ -111,16 +125,6 @@ rule samtools_index:
     shell:
         "samtools index {input} > {log} 2>&1"
 
-rule tissue_gtfs:
-    input:
-        expand(
-            "results/{tool}/tissue_gtfs.fofn",
-            tool=WORKING_TOOLS,
-        ),
-    output:
-        "results/tissues_gtf.fofn",
-    shell:
-        "cat {input} > {output}"
 
 rule unzip_rnaseq_reads:
     input:
@@ -131,3 +135,15 @@ rule unzip_rnaseq_reads:
         "logs/common/unzip_rnaseq_reads/{sample}.log"
     shell:
         "(gunzip -c {input} > {output}) > {log} 2>&1"
+
+
+rule preprocess_polyA_peaks:
+    '''unzips file and changes chromosomes from '1' to 'chr1''''
+    input:
+        gz = config["PolyASitePeaks"]
+    output:
+        bed = "resources/PolyASitePeaks.bed"
+    log:
+        "logs/common/preprocess_polyA_peaks.log"
+    shell:
+        "(gunzip -c {input.gz} | sed 's/^/chr/' - > {output.bed}) > {log} 2>&1"

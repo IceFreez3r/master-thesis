@@ -1,13 +1,13 @@
 rule stringtie:
     input:
-        expand("results/stringtie/tissues/{tissue}.gtf", tissue=util.tissues),
+        expand("results/stringtie/transcriptome/{tissue}.gtf", tissue=util.tissues),
 
 
 rule stringtie_run:
     input:
         bam="resources/mapped_reads/{sample}_sorted.bam",
         # bais=expand("resources/mapped_reads/{sample}_sorted.bam.bai", sample=util.samples),
-        annot_gff="resources/reference_annotation.gtf",
+        annot_gff="resources/annotation.gtf",
     output:
         gtf="results/stringtie/samples/{sample}.gtf",
     log:
@@ -25,13 +25,26 @@ rule stringtie_merge:
             "results/stringtie/samples/{sample}.gtf",
             sample=util.samples_for_tissue(wildcards.tissue),
         ),
-        annot_gff="resources/reference_annotation.gtf",
+        annot_gff="resources/annotation.gtf",
     output:
-        gtf="results/stringtie/transcriptome/{tissue}.gtf",
+        gtf="results/stringtie/merged/{tissue}.gtf",
     log:
-        "logs/stringtie/transcriptome/{tissue}.log",
+        "logs/stringtie/merged/{tissue}.log",
     params:
         stringtie_exe=config["stringtie"]["path"],
     threads: 16
     shell:
         "{params.stringtie_exe} --merge -o {output.gtf} -p {threads} -G {input.annot_gff} {input.sample_gtfs} > {log} 2>&1"
+
+
+rule stringtie_filter:
+    input:
+        gtf="results/stringtie/merged/{tissue}.gtf",
+    output:
+        gtf="results/stringtie/transcriptome/{tissue}.gtf",
+    log:
+        "logs/stringtie/filter/{tissue}.log",
+    conda:
+        "../envs/pyranges.yaml"
+    script:
+        "../scripts/stringtie/filter.py"
