@@ -1,22 +1,27 @@
-annot_gtf: /path/to/data/gencode_human/version_46/gencode.v46.annotation.gtf.gz
-# needs to be bgzf compressed and have a .tbi index
-annot_gff: /path/to/data/gencode_human/version_46/gencode.v46.annotation_sorted.gff3.gz
 # GENCODE or Ensembl
 annot_source: GENCODE
-reference_fa: /path/to/data/gencode_human/version_46/GRCh38.p14.genome.fa
 genome_name: GRCh38
 annot_name: gencode_v46
 sequencing_platform: Sequel II
+
+annot_gtf: /path/to/data/gencode_human/version_46/gencode.v46.annotation.gtf.gz
+# needs to be bgzf compressed and have a .tbi index
+annot_gff: /path/to/data/gencode_human/version_46/gencode.v46.annotation_sorted.gff3.gz
+annot_fa: /path/to/data/gencode_human/version_46/gencode.v46.transcripts.fa.gz
+reference_fa: /path/to/data/gencode_human/version_46/GRCh38.p14.genome.fa
 
 # additional columns are allowed and ignored for all of these
 # tsv file with "sample ID", "group" and "file"
 sample_table: /path/to/data/reads/metadata_tissue.tsv
 # tsv file with "sample ID" matching the IDs above and the path in the "file" column
 rnaseq_fofn:
-  fastq: /path/to/data/rna_seq/metadata_tissue_rnaseq_fastq.tsv
-  bam: /path/to/data/rna_seq/metadata_tissue_rnaseq_bam.tsv
-# tsv file with "sample ID" matching the IDs above and the "file" path to the transcriptome in .gtf.gz format
-transcriptome_table: /path/to/data/talon_gtf/gtf_metadata.tsv
+  fastq: /path/to/data/rna_seq/fastq/rnaseq_metadata_fastq.tsv
+  bam: /path/to/data/rna_seq/bam/rnaseq_metadata_bam.tsv
+  kallisto: /path/to/data/rna_seq/kallisto/rnaseq_metadata_kallisto.tsv
+# One .bed.gz file per tissue is expected, file names need to contain the tissue name as specified in the sample table
+CAGE_dir: /path/to/data/CAGE
+# Download bed file from https://polyasite.unibas.ch/atlas#2
+PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 
 isotools:
   coverage_threshold: 0
@@ -38,14 +43,10 @@ sqanti:
   # see https://github.com/ConesaLab/SQANTI3/wiki/Running-SQANTI3-Quality-Control#arguments-and-parameters-in-sqanti3-qc for options
   extra: "--ratio_TSS_metric mean"
 
-# cluster couldn't find conda
-path_to_conda: /home/lankenau/miniforge-pypy3/bin
-
-# Searched for CAGE files matching the tissues from the sample table
-# File name needs to contain the tissue name
-CAGE_dir: /path/to/data/CAGE
-
 cerberus:
   # aggregating all samples with cerberus at once can be memory intensive
   # set to None to disable
   aggregate_at_once_limit: 5
+
+# cluster couldn't find conda
+path_to_conda: /home/lankenau/miniforge-pypy3/bin

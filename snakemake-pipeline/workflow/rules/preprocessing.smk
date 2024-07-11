@@ -1,27 +1,3 @@
-rule unzip_annotation:
-    input:
-        gtf_gz=config["annot_gtf"],
-    output:
-        "resources/annotation.gtf",
-    log:
-        "logs/common/unzip_annotation.log",
-    shell:
-        "(gunzip -c {input.gtf_gz} > {output}) > {log} 2>&1"
-
-
-rule unzip_transcriptome:
-    output:
-        gtfs=expand("resources/transcriptome/{sample}.gtf", sample=util.samples),
-    params:
-        samples=config["transcriptome_table"],
-    run:
-        df = pd.read_csv(params["samples"], sep="\t")
-        for i, row in df.iterrows():
-            sample = row["sample ID"]
-            gtf_gz = row["gtf"]
-            shell("gunzip -c {gtf_gz} > resources/transcriptome/{sample}.gtf")
-
-
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/minimap2/index.html
 rule minimap_index:
     input:

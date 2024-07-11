@@ -10,6 +10,19 @@ data_dir = "/path/to/data/rna_seq/"
 
 rnaseq_metadata_bam = pd.DataFrame(columns=['sample ID', 'file'])
 rnaseq_metadata_fastq = pd.DataFrame(columns=['sample ID', 'file'])
+rnaseq_metadata_kallisto = pd.DataFrame(columns=['sample ID', 'file'])
+
+def download_file(url, type, metadata_df):
+    url = encode_url + url
+    filepath = os.path.join(data_dir, type)
+    filename = url.split("/")[-1]
+    if not os.path.exists(os.path.join(filepath, filename)):
+        print(f"Downloading {type} file for sample {sample_id}")
+        os.system(f"wget -P {filepath} {url}")
+        print(f"Downloaded {type} file for sample {sample_id}")
+    else:
+        print(f"{type} file for sample {sample_id} already exists.")
+    return pd.concat([metadata_df, pd.DataFrame({'sample ID': sample_id, 'file': os.path.join(filepath, filename)}, index=[0])], ignore_index=True)
 
 for i, sample_row in sample_df.iterrows():
     sample_id = sample_row['sample ID']
@@ -45,38 +58,30 @@ for i, sample_row in sample_df.iterrows():
         print(f"Biosample summary does not match for sample {sample_id}:\n{response_json['biosample_summary']}\nvs\n{sample_row['Biosample summary']}")
         continue
 
-    BAM_url, fastq_url = None, None
+    BAM_url, fastq_url, kallisto_url = None, None, None
     for file in response_json['files']:
         if file['file_type'] == 'bam' and file['output_type'] == 'alignments':
             BAM_url = file['href']
         if file['file_type'] == 'fastq' and file['output_type'] == 'reads':
             fastq_url = file['href']
+        if file['file_type'] == 'tsv' and file['output_type'] == 'transcript quantifications':
+            for alias in file['aliases']:
+                if "kallisto" in alias:
+                    kallisto_url = file['href']
     if BAM_url is None:
         print(f"No BAM file found for sample {sample_id}")
         continue
     if fastq_url is None:
         print(f"No fastq file found for sample {sample_id}")
         continue
+    if kallisto_url is None:
+        print(f"No kallisto file found for sample {sample_id}")
+        continue
 
-    BAM_url = encode_url + BAM_url
-    filename = BAM_url.split("/")[-1]
-    if not os.path.exists(os.path.join(data_dir, filename)):
-        print(f"Downloading BAM file for sample {sample_id}")
-        os.system(f"wget -P {data_dir} {BAM_url}")
-        print(f"Downloaded BAM file for sample {sample_id}")
-    else:
-        print(f"BAM file for sample {sample_id} already exists.")
-    rnaseq_metadata_bam = pd.concat([rnaseq_metadata_bam, pd.DataFrame({'sample ID': sample_id, 'file': f"{data_dir}{filename}"}, index=[0])], ignore_index=True)
+    rnaseq_metadata_bam = download_file(BAM_url, "bam", rnaseq_metadata_bam)
+    rnaseq_metadata_fastq = download_file(fastq_url, "fastq", rnaseq_metadata_fastq)
+    rnaseq_metadata_kallisto = download_file(kallisto_url, "kallisto", rnaseq_metadata_kallisto)
 
-    fastq_url = encode_url + fastq_url
-    filename = fastq_url.split("/")[-1]
-    if not os.path.exists(os.path.join(data_dir, filename)):
-        print(f"Downloading fastq file for sample {sample_id}")
-        os.system(f"wget -P {data_dir} {fastq_url}")
-        print(f"Downloaded fastq file for sample {sample_id}")
-    else:
-        print(f"Fastq file for sample {sample_id} already exists.")
-    rnaseq_metadata_fastq = pd.concat([rnaseq_metadata_fastq, pd.DataFrame({'sample ID': sample_id, 'file': f"{data_dir}{filename}"}, index=[0])], ignore_index=True)
-
-rnaseq_metadata_bam.to_csv(os.path.join(data_dir, "rnaseq_metadata_bam.tsv"), sep="\t", index=False)
-rnaseq_metadata_fastq.to_csv(os.path.join(data_dir, "rnaseq_metadata_fastq.tsv"), sep="\t", index=False)
+rnaseq_metadata_bam.to_csv(os.path.join(data_dir, "bam", "rnaseq_metadata_bam.tsv"), sep="\t", index=False)
+rnaseq_metadata_fastq.to_csv(os.path.join(data_dir, "fastq", "rnaseq_metadata_fastq.tsv"), sep="\t", index=False)
+rnaseq_metadata_kallisto.to_csv(os.path.join(data_dir, "kallisto", "rnaseq_metadata_kallisto.tsv"), sep="\t", index=False)

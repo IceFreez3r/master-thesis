@@ -1,6 +1,10 @@
 import os
 
 
+localrules:
+    isoquant_transcriptomes
+
+
 rule isoquant:
     input:
         expand("results/isoquant/transcriptome/{tissue}.gtf", tissue=util.tissues),
@@ -32,7 +36,7 @@ rule isoquant_run:
     threads: 32
     resources:
         mem_mb=512 * 1024,
-        runtime_min=8 * 60,
+        runtime_min=12 * 60,
     conda:
         "../envs/isoquant.yaml"
     shell:

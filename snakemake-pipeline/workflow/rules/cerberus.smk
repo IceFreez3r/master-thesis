@@ -3,7 +3,10 @@ import pandas as pd
 localrules:
     cerberus_agg_ends_config,
     cerberus_agg_ics_config,
-    gz_gtf
+    gz_gtf,
+    # These often fail on systems without memory overcommitting
+    cerberus_agg_ics,
+    cerberus_agg_ends,
 
 rule cerberus:
     input:
@@ -24,7 +27,7 @@ rule cerberus:
 
 rule cerberus_reference_to_bed:
     input:
-        gtf = "resources/reference_annotation.gtf"
+        gtf = "resources/annotation.gtf"
     output:
         bed = 'results/cerberus/reference_{mode}.bed'
     log: 'logs/cerberus/reference/to_bed_{mode}.log'
@@ -38,7 +41,7 @@ rule cerberus_reference_to_bed:
 
 rule cerberus_reference_to_ics:
     input:
-        gtf = "resources/reference_annotation.gtf"
+        gtf = "resources/annotation.gtf"
     output:
         ics = 'results/cerberus/reference_ics.ics'
     log: 'logs/cerberus/reference/to_ics.log'

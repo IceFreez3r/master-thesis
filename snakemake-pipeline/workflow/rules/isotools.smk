@@ -47,7 +47,7 @@ rule isotools_tissues:
         output_prefix="results/isotools/transcriptome/",
     threads: 1
     resources:
-        mem_mib=128 * 1024,
+        mem_mb=128 * 1024,
         runtime_min=2 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment

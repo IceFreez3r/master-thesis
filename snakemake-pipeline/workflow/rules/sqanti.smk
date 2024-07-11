@@ -3,11 +3,11 @@ localrules:
 
 rule sqanti:
     input:
-        expand("results/sqanti/qc/this_wont_exist_{tool}_{tissue}.txt", tool=WORKING_TOOLS, tissue=util.tissues)
+        expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues)
 
 rule sqanti_rnaseq_fofn:
     input:
-        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_sammples_for_tissue(wildcards.tissue)),
+        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
     output:
         "results/sqanti/rnaseq_fofn/{tissue}.fofn"
     run:
@@ -21,33 +21,33 @@ rule sqanti_qc:
         cage = "resources/CAGE/{tissue}.bed",
         ref_fa = "resources/reference.fa",
         polyA_motifs = config["sqanti"]["polyA_motif_list"],
-        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_sammples_for_tissue(wildcards.tissue)),
+        polyA_peaks = "resources/PolyASitePeaks.bed",
+        kallisto_expression = lambda wildcards: expand("results/kallisto/{sample}/abundance.tsv", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
         rnaseq_fastq = "results/sqanti/rnaseq_fofn/{tissue}.fofn",
     output:
-        "results/sqanti/qc/{tool}/{tissue}/{tissue}_SQANTI3_report.html"
+        "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html",
+        "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.pdf",
     log:
-        out = "logs/sqanti/qc/{tool}/{tissue}.log",
-        error = "logs/sqanti/qc/{tool}/{tissue}.error.log"
+        out = "logs/sqanti/{tool}/qc/{tissue}.log",
+        error = "logs/sqanti/{tool}/qc/{tissue}.error.log"
     params:
         sqanti_qc=os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
-        # TODO: --fl full-length abundance data (from talon?)
-        # TODO: One of the two is probably wrong/redundant
-        output_dir = "results/sqanti/qc/{tool}/{tissue}/",
-        # output_prefix = "results/sqanti/qc/{tool}/{tissue}/",
-        extra = "--aligner_choice minimap2 --report both"
-        extra_user = config["sqanti"]["extra"]
-        # TODO: --force_id_ignore might be needed
-    threads: 16
+        output_dir = "results/sqanti/{tool}/qc/{tissue}/",
+        extra = "--report both",
+        extra_user = config["sqanti"]["extra"],
+        expression = lambda wildcards, input: ",".join(input.kallisto_expression),
+    threads: 32
     resources:
         mem_mb=128 * 1024,
-        runtime_min=8 * 60,
+        runtime_min=24 * 60,
     conda:
         "../envs/sqanti.yaml"
     shell:
         """
         python {params.sqanti_qc} --CAGE_peak {input.cage}\
-            --short_reads {input.rnaseq_fastq}\
-            --polyA_motif_list {input.polyA_motifs}\
+            --short_reads {input.rnaseq_fastq} --expression {params.expression}\
+            --polyA_motif_list {input.polyA_motifs} --polyA_peak {input.polyA_peaks}\
             -d {params.output_dir}\
             {params.extra} {params.extra_user} --cpus {threads}\
             {input.gtf} {input.ref_gtf} {input.ref_fa} > {log.out} 2> {log.error}
