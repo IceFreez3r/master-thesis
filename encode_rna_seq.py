@@ -8,11 +8,11 @@ encode_url = "https://www.encodeproject.org"
 
 data_dir = "/path/to/data/rna_seq/"
 
-rnaseq_metadata_bam = pd.DataFrame(columns=['sample ID', 'file'])
-rnaseq_metadata_fastq = pd.DataFrame(columns=['sample ID', 'file'])
-rnaseq_metadata_kallisto = pd.DataFrame(columns=['sample ID', 'file'])
+rnaseq_metadata_bam = pd.DataFrame(columns=['sample ID', 'experiment ID', 'file'])
+rnaseq_metadata_fastq = pd.DataFrame(columns=['sample ID', 'experiment ID', 'file'])
+rnaseq_metadata_kallisto = pd.DataFrame(columns=['sample ID', 'experiment ID', 'file'])
 
-def download_file(url, type, metadata_df):
+def download_file(rna_seq_id, url, type, metadata_df):
     url = encode_url + url
     filepath = os.path.join(data_dir, type)
     filename = url.split("/")[-1]
@@ -22,7 +22,7 @@ def download_file(url, type, metadata_df):
         print(f"Downloaded {type} file for sample {sample_id}")
     else:
         print(f"{type} file for sample {sample_id} already exists.")
-    return pd.concat([metadata_df, pd.DataFrame({'sample ID': sample_id, 'file': os.path.join(filepath, filename)}, index=[0])], ignore_index=True)
+    return pd.concat([metadata_df, pd.DataFrame({'sample ID': sample_id, 'experiment ID': rna_seq_id, 'file': os.path.join(filepath, filename)}, index=[0])], ignore_index=True)
 
 for i, sample_row in sample_df.iterrows():
     sample_id = sample_row['sample ID']
@@ -78,9 +78,9 @@ for i, sample_row in sample_df.iterrows():
         print(f"No kallisto file found for sample {sample_id}")
         continue
 
-    rnaseq_metadata_bam = download_file(BAM_url, "bam", rnaseq_metadata_bam)
-    rnaseq_metadata_fastq = download_file(fastq_url, "fastq", rnaseq_metadata_fastq)
-    rnaseq_metadata_kallisto = download_file(kallisto_url, "kallisto", rnaseq_metadata_kallisto)
+    rnaseq_metadata_bam = download_file(rna_seq_id, BAM_url, "bam", rnaseq_metadata_bam)
+    rnaseq_metadata_fastq = download_file(rna_seq_id, fastq_url, "fastq", rnaseq_metadata_fastq)
+    rnaseq_metadata_kallisto = download_file(rna_seq_id, kallisto_url, "kallisto", rnaseq_metadata_kallisto)
 
 rnaseq_metadata_bam.to_csv(os.path.join(data_dir, "bam", "rnaseq_metadata_bam.tsv"), sep="\t", index=False)
 rnaseq_metadata_fastq.to_csv(os.path.join(data_dir, "fastq", "rnaseq_metadata_fastq.tsv"), sep="\t", index=False)

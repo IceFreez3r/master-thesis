@@ -1,6 +1,6 @@
-name: pyranges
+name: gffread
 channels:
  - bioconda
  - conda-forge
 dependencies:
-  - pyranges
+  - gffread
