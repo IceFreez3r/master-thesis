@@ -22,7 +22,7 @@ rule sqanti_qc:
         ref_fa = "resources/reference.fa",
         polyA_motifs = config["sqanti"]["polyA_motif_list"],
         polyA_peaks = "resources/PolyASitePeaks.bed",
-        kallisto_expression = lambda wildcards: expand("results/kallisto/{sample}/abundance.tsv", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        kallisto_expression = lambda wildcards: expand("results/kallisto/{{tool}}/{sample}/abundance.tsv", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
         fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
         rnaseq_fastq = "results/sqanti/rnaseq_fofn/{tissue}.fofn",
     output:
@@ -34,7 +34,7 @@ rule sqanti_qc:
     params:
         sqanti_qc=os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
         output_dir = "results/sqanti/{tool}/qc/{tissue}/",
-        extra = "--report both",
+        extra = "--report both --skipORF",
         extra_user = config["sqanti"]["extra"],
         expression = lambda wildcards, input: ",".join(input.kallisto_expression),
     threads: 32

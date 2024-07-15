@@ -7,7 +7,7 @@ localrules:
 
 rule flair:
     input:
-        expand("results/flair/collapse/{tissue}.isoforms.gtf", tissue=util.tissues),
+        expand("results/flair/transcriptome/{tissue}.gtf", tissue=util.tissues),
         # expand("results/flair/collapse/{tissue}.isoforms.bed", tissue=util.tissues),
         # expand("results/flair/collapse/{tissue}.isoforms.fa", tissue=util.tissues),
 
@@ -74,9 +74,9 @@ rule flair_collapse:
         gtf="resources/annotation.gtf",
         reads=lambda wildcards: util.longreads_for_tissue(wildcards.tissue),
     output:
-        "results/flair/collapse/{tissue}.isoforms.bed",
+        # "results/flair/collapse/{tissue}.isoforms.bed",
         "results/flair/collapse/{tissue}.isoforms.gtf",
-        "results/flair/collapse/{tissue}.isoforms.fa",
+        # "results/flair/collapse/{tissue}.isoforms.fa",
     log:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
@@ -85,11 +85,11 @@ rule flair_collapse:
     threads: 8
     resources:
         mem_mb=64 * 1024,
-        runtime_min=2 * 60,
+        runtime_min=24 * 60,
     conda:
         "../envs/flair.yaml"
-    shell:
-        "flair collapse --query {input.bed12} --genome {params.reference_fa} --reads {input.reads} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
+    script:
+        "../scripts/flair/collapse.py"
 
 
 rule flair_transcriptomes:

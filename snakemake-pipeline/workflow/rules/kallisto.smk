@@ -1,18 +1,34 @@
 import requests
+import os
 
 
 rule kallisto:
     input:
-        abundance=expand("results/kallisto/{sample}/abundance.tsv", sample=util.rnaseq_samples_for_tissue),
+        abundance=expand("results/kallisto/{tool}/{sample}/abundance.tsv", tool=WORKING_TOOLS, sample=util.rnaseq_samples),
+
+
+rule tissue_gtf_to_fa:
+    input:
+        gtf="results/{tool}/transcriptome/{tissue}.gtf",
+        ref_fa="resources/reference.fa",
+        ref_fai="resources/reference.fa.fai",
+    output:
+        fa="results/{tool}/transcriptome/{tissue}.fa"
+    log:
+        "logs/{tool}/transcriptome/{tissue}.log"
+    conda:
+        "../envs/gffread.yaml"
+    shell:
+        "gffread -w {output.fa} -g {input.ref_fa} {input.gtf}"
 
 
 rule kallisto_index:
     input:
-        fasta=config["annot_fa"]
+        fasta="results/{tool}/transcriptome/{tissue}.fa"
     output:
-        index="results/kallisto/reference.kidx"
+        index="results/kallisto/{tool}/{tissue}/reference.kidx"
     log:
-        "logs/kallisto/index.log"
+        "logs/kallisto/{tool}/{tissue}/index.log"
     threads: 8
     conda:
         "../envs/kallisto.yaml"
@@ -44,18 +60,18 @@ def fragment_size_from_encode(sample):
 
 rule kallisto_quant:
     input:
-        index="results/kallisto/reference.kidx",
+        index=lambda wildcards: f"results/kallisto/{wildcards.tool}/{util.tissue_for_sample(wildcards.sample)}/reference.kidx",
         fastq=lambda wildcards: util.rnaseq_reads_for_sample(wildcards.sample),
     output:
-        abundance="results/kallisto/{sample}/abundance.tsv",
-        h5="results/kallisto/{sample}/abundance.h5",
-        json="results/kallisto/{sample}/run_info.json",
+        abundance="results/kallisto/{tool}/{sample}/abundance.tsv",
+        h5="results/kallisto/{tool}/{sample}/abundance.h5",
+        json="results/kallisto/{tool}/{sample}/run_info.json",
     log:
-        "logs/kallisto/{sample}.log"
+        "logs/kallisto/{tool}/{sample}.log"
     params:
-        output_dir=lambda wildcards: f"results/kallisto/{wildcards.sample}",
-        fragment_length=config["kallisto"]["fragment-length"],
-        sd=config["kallisto"]["sd"]
+        output_dir="results/kallisto/{tool}/{sample}",
+        fragment_length=lambda wildcards: fragment_mean(util.rnaseq_sample_for_sample(wildcards.sample)),
+        sd=lambda wildcards: fragment_sd(util.rnaseq_sample_for_sample(wildcards.sample)),
     threads: 8
     conda:
         "../envs/kallisto.yaml"

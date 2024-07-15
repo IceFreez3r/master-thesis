@@ -22,6 +22,10 @@ class Utility:
         return samples
 
     @property
+    def rnaseq_samples(self):
+        return self.rnaseq_fastq["sample ID"].tolist()
+
+    @property
     def tissues(self):
         tissues = self.sample_df["group"].unique().tolist()
         CAGE_dir = self.config["CAGE_dir"]
@@ -38,9 +42,11 @@ class Utility:
         reads = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         return reads
 
+    def rnaseq_sample_for_sample(self, sample):
+        return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"] == sample]["experiment ID"].values[0]
+
     def rnaseq_reads_for_sample(self, sample):
-        reads = self.rnaseq_fastq[self.rnaseq_fastq["sample ID"] == sample]["file"].values[0]
-        return reads
+        return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"] == sample]["file"].values[0]
 
     def rnaseq_alignment_for_sample(self, sample):
         alignment = self.rnaseq_bam[self.rnaseq_bam["sample ID"] == sample]["file"].values[0]
