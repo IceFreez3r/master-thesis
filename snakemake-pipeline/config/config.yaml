@@ -60,7 +60,7 @@ cerberus:
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
 
 # Reduces bam and gtf files to chr15 for testing
-test_run: True
+test_run: False
 # Replace resources from above, when test_run is set to True
 test_config:
   sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue_test.tsv

@@ -155,6 +155,8 @@ rule unzip_annotation:
         gtf = "resources/annotation.gtf"
     log:
         "logs/common/unzip_annotation.log"
+    resources:
+        disk_mb = 5 * 1024
     shell:
         "(gunzip -c {input.gz} > {output.gtf}) > {log} 2>&1"
 

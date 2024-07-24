@@ -20,7 +20,7 @@ rule sqanti_qc:
         # rnaseq_fastq = "results/sqanti/rnaseq_fofn/{tissue}.fofn",
         # rnaseq_fastq_gz = "results/sqanti/rnaseq_fofn/{tissue}_gz.fofn",
         sj_tabs = lambda wildcards: expand("results/star/{sample}/{sample}.SJ.out.tab", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        SR_bams = lambda wildcards: expand("results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        SR_bams = lambda wildcards: expand("results/star/{{tissue}}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
     output:
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.pdf",
@@ -33,12 +33,13 @@ rule sqanti_qc:
         out = "logs/sqanti/{tool}/qc/{tissue}.log",
         error = "logs/sqanti/{tool}/qc/{tissue}.error.log"
     params:
-        sqanti_qc=os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
-        output_dir=lambda wc, output: output.gtf.replace(f"{wc.tissue}_corrected.gtf", ""),
+        sqanti_qc = os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
+        output_dir = lambda wc, output: os.path.dirname(output.gtf),
         extra = "--report both --skipORF",
         extra_user = config["sqanti"]["extra"],
         expression = lambda wildcards, input: ",".join(input.kallisto_expression),
         sj_tabs = lambda wildcards, input: ",".join(input.sj_tabs),
+        SR_bam_dir = lambda wildcards, input: os.path.dirname(input.SR_bams[0]),
     threads: 32
     resources:
         mem_mb=128 * 1024,
@@ -51,7 +52,7 @@ rule sqanti_qc:
         """
         (
             python {params.sqanti_qc} --CAGE_peak {input.cage}\
-                -c {params.sj_tabs} --SR_bam {input.SR_bams} --expression {params.expression}\
+                --coverage {params.sj_tabs} --SR_bam {params.SR_bam_dir} --expression {params.expression}\
                 --polyA_motif_list {input.polyA_motifs} --polyA_peak {input.polyA_peaks}\
                 -d {params.output_dir}\
                 {params.extra} {params.extra_user} --cpus {threads}\
