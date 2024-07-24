@@ -34,7 +34,7 @@ rule star_map:
         fastq = lambda wildcards: util.rnaseq_reads_for_sample(wildcards.sample),
     output:
         sj_tab = "results/star/{sample}/{sample}.SJ.out.tab",
-        bam = "results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam",
+        bam = temp("results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam"),
     log:
         "results/star/{sample}/{sample}.Log.out",
         "results/star/{sample}/{sample}.Log.progress.out",
@@ -60,3 +60,11 @@ rule star_map:
                  --genomeLoad NoSharedMemory \
         ) > {log.main} 2>&1
         """
+
+rule star_move_bam:
+    input:
+        bam = "results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam",
+    output:
+        bam = "results/star/{tissue}/{sample}.Aligned.sortedByCoord.out.bam",
+    shell:
+        "mv {input.bam} {output.bam}"
