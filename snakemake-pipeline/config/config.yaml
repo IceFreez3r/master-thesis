@@ -35,6 +35,14 @@ talon:
   # If true, input files to talon will be copied to $TMPDIR before running talon, useful if IO is slow
   use_tmpdir: true
 
+star:
+  # Extra options for STAR
+  index:
+    extra: ""
+  align:
+    # Same options as SQANTI3 would use (very close to default ENCODE options)
+    extra: "--alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --outFilterType BySJout --outSAMunmapped Within --outFilterMultimapNmax 20 --outFilterMismatchNoverLmax 0.04 --outFilterMismatchNmax 999 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --sjdbScore 1 --twopassMode Basic"
+
 sqanti:
   # Path to the SQANTI3 repo
   path: /project/hfa_work/ENCODE/code/SQANTI3
@@ -50,3 +58,14 @@ cerberus:
 
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
+
+# Reduces bam and gtf files to chr15 for testing
+test_run: True
+# Replace resources from above, when test_run is set to True
+test_config:
+  sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue_test.tsv
+  CAGE_dir: /project/hfa_work/ENCODE/data/CAGE_test
+  rnaseq_fofn:
+    fastq: /project/hfa_work/ENCODE/data/rna_seq/fastq_test/rnaseq_metadata_fastq_test.tsv
+    bam: /project/hfa_work/ENCODE/data/rna_seq/bam/rnaseq_metadata_bam.tsv
+  annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.annotation.chr15.gtf.gz

@@ -2,8 +2,8 @@ __pycache__
 .snakemake
 
 benchmarks
-results
-resources
-logs
+results*
+resources*
+logs*
 
 *.pkl
