@@ -5,10 +5,8 @@ rule isotools:
 
 rule isotools_create:
     input:
-        bams=expand("resources/mapped_reads/{sample}_sorted.bam", sample=util.samples),
-        bais=expand(
-            "resources/mapped_reads/{sample}_sorted.bam.bai", sample=util.samples
-        ),
+        bams=[input_long_read_bam({"sample": sample}) for sample in util.samples],
+        bais=[input_long_read_bai({"sample": sample}) for sample in util.samples],
         annotation_gff=config["annot_gff"],
         annotation_tbi=config["annot_gff"] + ".tbi",
         reference_fa="resources/reference.fa",
@@ -44,7 +42,7 @@ rule isotools_tissues:
     params:
         tissues=util.tissues,
         query=config["isotools"]["query"],
-        output_prefix="results/isotools/transcriptome/",
+        output_prefix=lambda wc, output: output["tissue_gtfs"][0].replace(f"{util.tissues[0]}.gtf", ""),
     threads: 1
     resources:
         mem_mb=128 * 1024,

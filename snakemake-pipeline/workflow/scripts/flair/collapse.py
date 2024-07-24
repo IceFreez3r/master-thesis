@@ -4,7 +4,7 @@ import subprocess
 input_bed12 = snakemake.input.bed12
 input_gtf = snakemake.input.gtf
 input_reads = snakemake.input.reads
-params_reference_fa = snakemake.params.reference_fa
+params_reference_fa = snakemake.input.ref_fa
 params_output_prefix = snakemake.params.output_prefix
 log = snakemake.log[0]
 threads = snakemake.threads
@@ -39,6 +39,7 @@ with open(log, "w") as log_file:
         collapsed_files = " ".join([f"{params_output_prefix}_{chrom}.collapsed.bed" for chrom in os.listdir(split_dir)])
         subprocess.run(f"cat {collapsed_files} > {params_output_prefix}.collapsed.bed", shell=True, check=True, stdout=log_file)
     else:
+        log_file.write(f"Running FLAIR collapse on {input_bed12}\n")
         subprocess.run(f"flair collapse --query {input_bed12} --genome {params_reference_fa} \
                        --reads {input_reads} --gtf {input_gtf} --threads {threads} \
                        --output {params_output_prefix}", shell=True, check=True, stdout=log_file)

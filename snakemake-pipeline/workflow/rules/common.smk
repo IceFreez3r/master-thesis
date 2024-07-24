@@ -6,8 +6,14 @@ localrules:
     preprocess_reference_fa,
     unzip_rnaseq_reads,
     preprocess_polyA_peaks,
+    samtools_index
 
 WORKING_TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
+
+if (config["test_run"]):
+    for overwrite in config["test_config"]:
+        config[overwrite] = config["test_config"][overwrite]
+
 
 class Utility:
     def __init__(self, config):
@@ -15,6 +21,11 @@ class Utility:
         self.sample_df = pd.read_csv(config['sample_table'], sep="\t")
         self.rnaseq_fastq = pd.read_csv(config["rnaseq_fofn"]["fastq"], sep="\t")
         self.rnaseq_bam = pd.read_csv(config["rnaseq_fofn"]["bam"], sep="\t")
+
+        # Remove all samples from tissues without CAGE support
+        self.sample_df = self.sample_df[self.sample_df["group"].isin(self.tissues)]
+        self.rnaseq_fastq = self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(self.samples)]
+        self.rnaseq_bam = self.rnaseq_bam[self.rnaseq_bam["sample ID"].isin(self.samples)]
 
     @property
     def samples(self):
@@ -83,6 +94,44 @@ class Utility:
 
 util = Utility(config)
 
+
+class ENCODE_data:
+    def __init__(self):
+        self.fragment_sizes = {}
+        self.has_error = False
+
+    def fragment_mean(self, sample):
+        if not sample in self.fragment_sizes:
+            self.fragment_size_from_encode(sample)
+        return self.fragment_sizes[sample][0]
+
+    def fragment_sd(self, sample):
+        if not sample in self.fragment_sizes:
+            self.fragment_size_from_encode(sample)
+        return self.fragment_sizes[sample][1]
+
+    def fragment_size_from_encode(self, sample):
+        if not self.has_error:
+            url = f"https://www.encodeproject.org/experiments/{sample}/?format=json"
+            response = requests.get(url)
+            try:
+                response.raise_for_status()
+                data = response.json()
+                fragment_size = data["replicates"][0]["library"]["average_fragment_size"]
+                fragment_sd = data["replicates"][0]["library"]["average_fragment_size"]
+                self.fragment_sizes[sample] = (fragment_size, fragment_sd)
+                return
+            except requests.exceptions.HTTPError:
+                print(f"[WARN] Error getting fragment size from ENCODE for {sample}")
+                print("[WARN] Defaulting to fragment size 200 and sd 30 for all samples")
+                self.has_error = True
+        self.fragment_sizes[sample] = (200, 30)
+
+encode = ENCODE_data()
+
+def shadow_large_rules():
+    return "copy-minimal" if config["shadow_large_rules"] else None
+
 rule preprocess_reference_fa:
     """Removes scaffolds from the reference"""
     input:
@@ -117,6 +166,8 @@ rule index_reference:
         "resources/reference.fa.fai"
     log:
         "logs/common/index_reference.log"
+    conda:
+        "../envs/samtools.yaml"
     shell:
         "samtools faidx {input} > {log} 2>&1"
 
@@ -128,6 +179,8 @@ rule samtools_index:
         "{sample}.bam.bai"
     log:
         "logs/common/samtools_index/{sample}.log"
+    conda:
+        "../envs/samtools.yaml"
     shell:
         "samtools index {input} > {log} 2>&1"
 
@@ -144,7 +197,7 @@ rule unzip_rnaseq_reads:
 
 
 rule preprocess_polyA_peaks:
-    '''unzips file and changes chromosomes from '1' to 'chr1''''
+    """unzips file and changes chromosomes from '1' to 'chr1'"""
     input:
         gz = config["PolyASitePeaks"]
     output:
@@ -153,3 +206,26 @@ rule preprocess_polyA_peaks:
         "logs/common/preprocess_polyA_peaks.log"
     shell:
         "(gunzip -c {input.gz} | sed 's/^/chr/' - > {output.bed}) > {log} 2>&1"
+
+def input_long_read_bam(wildcards):
+    if config["test_run"]:
+        return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam"
+    return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam"
+
+def input_long_read_bai(wildcards):
+    if config["test_run"]:
+        return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam.bai"
+    return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam.bai"
+
+rule test_long_read_bam:
+    input:
+        bam = "resources/mapped_reads/{sample}_sorted.bam",
+        bai = "resources/mapped_reads/{sample}_sorted.bam.bai",
+    output:
+        "resources/test/mapped_reads/{sample}_sorted_test.bam"
+    log:
+        "logs/common/test_long_read_bam/{sample}.log"
+    conda:
+        "../envs/samtools.yaml"
+    shell:
+        "(samtools view -b {input.bam} chr15 > {output}) > {log} 2>&1"

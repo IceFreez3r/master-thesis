@@ -23,16 +23,16 @@ def check_for_annotation_db(wildcards):
 
 rule isoquant_run:
     input:
-        bams=lambda wildcards: expand("resources/mapped_reads/{sample}_sorted.bam", sample=util.samples_for_tissue(wildcards.tissue)),
-        bais=lambda wildcards: expand("resources/mapped_reads/{sample}_sorted.bam.bai", sample=util.samples_for_tissue(wildcards.tissue)),
+        bams=lambda wildcards: [input_long_read_bam({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
+        bais=lambda wildcards: [input_long_read_bai({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
         ref_fa="resources/reference.fa",
         annot_gtf=check_for_annotation_db,
     output:
-        "results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf"
+        gtf=temp("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf")
     log:
         "logs/isoquant/{tissue}.log",
     params:
-        output_folder=lambda wildcards: f"results/isoquant/{wildcards.tissue}",
+        output_folder=lambda wc, output: output["gtf"].replace("/OUT/OUT.transcript_models.gtf", ""),
     threads: 32
     resources:
         mem_mb=512 * 1024,
@@ -49,4 +49,4 @@ rule isoquant_transcriptomes:
     output:
         "results/isoquant/transcriptome/{tissue}.gtf",
     shell:
-        "ln -sr {input} {output}"
+        "cp {input} {output}"

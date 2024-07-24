@@ -33,8 +33,8 @@ rule gencode_utr_fix:
 
 rule lapa_config:
     input:
-        bams = expand(os.path.join("resources/mapped_reads", '{sample}_sorted.bam'), sample=util.samples),
-        bais = expand(os.path.join("resources/mapped_reads", '{sample}_sorted.bam.bai'), sample=util.samples),
+        bams = [input_long_read_bam({"sample": sample}) for sample in util.samples],
+        bais = [input_long_read_bai({"sample": sample}) for sample in util.samples],
     output:
         config = 'results/lapa/samples.csv'
     threads: 4
@@ -45,7 +45,11 @@ rule lapa_config:
     run:
         os.makedirs("results/lapa/", exist_ok=True)
         samples = util.samples
-        df = pd.DataFrame({'sample': samples, 'dataset': [util.tissue_for_sample(sample) for sample in samples], 'path': [f"resources/mapped_reads/{sample}_sorted.bam" for sample in samples]})
+        df = pd.DataFrame({
+            'sample': samples,
+            'dataset': [util.tissue_for_sample(sample) for sample in samples],
+            'path': [input_long_read_bam({"sample": sample}) for sample in samples]
+        })
         df.to_csv(output.config, index=False)
 
 rule lapa_tes:

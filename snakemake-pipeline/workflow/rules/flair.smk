@@ -8,26 +8,21 @@ localrules:
 rule flair:
     input:
         expand("results/flair/transcriptome/{tissue}.gtf", tissue=util.tissues),
-        # expand("results/flair/collapse/{tissue}.isoforms.bed", tissue=util.tissues),
-        # expand("results/flair/collapse/{tissue}.isoforms.fa", tissue=util.tissues),
 
 
 rule flair_bam_to_bed12:
     input:
-        bam="resources/mapped_reads/{sample}_sorted.bam",
-        bai="resources/mapped_reads/{sample}_sorted.bam.bai",
+        bam=input_long_read_bam,
+        bai=input_long_read_bai,
     output:
         bed12="resources/bed12/{sample}.bed12",
     log:
-        "logs/flair/align/bam_to_bed12_{sample}.log",
+        "logs/flair/bam_to_bed12/{sample}.log",
     threads: 1
     conda:
         "../envs/flair.yaml"
     shell:
-        """
-        echo "Aligning {input.bam} to bed12..." > {log}
-        (bam2Bed12 -i {input.bam} > {output.bed12}) > {log} 2>&1
-        """
+        "(bam2Bed12 -i {input.bam} > {output.bed12}) > {log} 2>&1"
 
 
 rule flair_combine_bed12:
@@ -49,15 +44,15 @@ rule flair_correct:
     input:
         bed12="results/flair/{tissue}_combined.bed12",
         gtf="resources/annotation.gtf",
+        ref_fa="resources/reference.fa",
     output:
-        "results/flair/correct/{tissue}_all_corrected.bed",
-        "results/flair/correct/{tissue}_all_inconsistent.bed",
+        correct="results/flair/correct/{tissue}_all_corrected.bed",
+        inconsistent="results/flair/correct/{tissue}_all_inconsistent.bed",
         # "results/flair/correct/{tissue}_cannot_verify.bed" not always generated
     log:
-        "logs/flair/correct/{tissue}_all_corrected.log",
+        "logs/flair/correct/{tissue}.log",
     params:
-        reference_fa="resources/reference.fa",
-        output_prefix=lambda wildcards: "results/flair/correct/" + wildcards.tissue,
+        output_prefix=lambda wc, output: output["correct"].replace("_all_corrected.bed", ""),
     threads: 8
     resources:
         mem_mb=16 * 1024,
@@ -65,7 +60,7 @@ rule flair_correct:
     conda:
         "../envs/flair.yaml"
     shell:
-        "flair correct --query {input.bed12} --genome {params.reference_fa} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
+        "flair correct --query {input.bed12} --genome {input.ref_fa} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
 
 
 rule flair_collapse:
@@ -73,15 +68,15 @@ rule flair_collapse:
         bed12="results/flair/correct/{tissue}_all_corrected.bed",
         gtf="resources/annotation.gtf",
         reads=lambda wildcards: util.longreads_for_tissue(wildcards.tissue),
+        ref_fa="resources/reference.fa",
     output:
         # "results/flair/collapse/{tissue}.isoforms.bed",
-        "results/flair/collapse/{tissue}.isoforms.gtf",
+        temp("results/flair/collapse/{tissue}.isoforms.gtf"),
         # "results/flair/collapse/{tissue}.isoforms.fa",
     log:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
-        reference_fa="resources/reference.fa",
-        output_prefix=lambda wildcards: "results/flair/collapse/" + wildcards.tissue,
+        output_prefix=lambda wc, output: output[0].replace(f".isoforms.gtf", ""),
     threads: 8
     resources:
         mem_mb=64 * 1024,
@@ -98,4 +93,4 @@ rule flair_transcriptomes:
     output:
         "results/flair/transcriptome/{tissue}.gtf",
     shell:
-        "ln -sr {input} {output}"
+        "cp {input} {output}"
