@@ -31,7 +31,8 @@ rule kallisto_index:
         "logs/kallisto/{tool}/index/{tissue}.log"
     threads: 16
     resources:
-        mem_mb=16 * 1024
+        mem_mb=16 * 1024,
+        disk_mb=lambda wc, input: 10 * input.size_mb
     conda:
         "../envs/kallisto.yaml"
     shell:

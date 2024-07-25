@@ -118,7 +118,7 @@ class ENCODE_data:
                 response.raise_for_status()
                 data = response.json()
                 fragment_size = data["replicates"][0]["library"]["average_fragment_size"]
-                fragment_sd = data["replicates"][0]["library"]["average_fragment_size"]
+                fragment_sd = data["replicates"][0]["library"]["fragment_length_CV"]
                 self.fragment_sizes[sample] = (fragment_size, fragment_sd)
                 return
             except requests.exceptions.HTTPError:
