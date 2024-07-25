@@ -71,13 +71,14 @@ rule flair_collapse:
         ref_fa="resources/reference.fa",
     output:
         # "results/flair/collapse/{tissue}.isoforms.bed",
-        temp("results/flair/collapse/{tissue}.isoforms.gtf"),
+        gtf = temp("results/flair/collapse/{tissue}.isoforms.gtf"),
         # "results/flair/collapse/{tissue}.isoforms.fa",
     log:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
-        output_prefix=lambda wc, output: output[0].replace(f".isoforms.gtf", ""),
-    threads: 8
+        output_prefix=lambda wc, output: output.gtf.replace(f".isoforms.gtf", ""),
+        bed_split_size=config["flair"]["bed_split_size"],
+    threads: 16
     resources:
         mem_mb=64 * 1024,
         runtime_min=24 * 60,

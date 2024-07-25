@@ -23,8 +23,13 @@ CAGE_dir: /path/to/data/CAGE
 # Download bed file from https://polyasite.unibas.ch/atlas#2
 PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 
+flair:
+  # FLAIRs memory consumption drastically increase for .bed files over 1GB
+  # If the .bed file is larger than this, it will be split by chromosome
+  # Using 1.01e9 and not just 1e9 because lung is just ever so slightly over 1GB
+  bed_split_size: 1.01e9
+
 isotools:
-  coverage_threshold: 0
   query: "BALANCED"
 
 stringtie:

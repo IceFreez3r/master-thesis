@@ -14,8 +14,9 @@ annotation_gff = snakemake.input.annotation_gff
 metadata_path = snakemake.input.sample_table
 alignments = snakemake.input.bams
 
+tissue = snakemake.wildcards.tissue
 samples = snakemake.params.samples
-tissues = snakemake.params.tissues
+query = snakemake.params.query
 metadata = pd.read_csv(metadata_path, sep="\t")
 
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)
@@ -32,19 +33,4 @@ isoseq.add_qc_metrics(genome_path, progress_bar=False)
 # add ORF predictions
 isoseq.add_orf_prediction(genome_path, progress_bar=False)
 
-# Add tissue specific filters
-group_idx = {
-    gn: [i for i, sample in enumerate(isoseq.samples) if sample in grp]
-    for gn, grp in isoseq.groups().items()
-}
-for tissue in tissues:
-    filter_name = "IN" + tissue.upper()
-    tissue_index = group_idx[tissue]
-    expression = f"g.coverage[{tissue_index},trid].sum() >= {snakemake.params.coverage_threshold}"
-    isoseq.add_filter(
-        tag=filter_name, expression=expression, context="transcript", update=True
-    )
-    logger.info(f"Added filter {filter_name} for tissue {tissue}: {expression}")
-
-isoseq.save(snakemake.output.pkl)
-isoseq.write_gtf(snakemake.output.gtf, min_coverage=5, gzip=False, query="")
+isoseq.write_gtf(snakemake.output.gtf, gzip=False, query=query)

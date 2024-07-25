@@ -14,7 +14,7 @@ def check_for_annotation_db(wildcards):
     # isoquant preprocesses the annotation file
     # speed up the process by reusing the created .db file
     filename = os.path.basename(config["annot_gtf"]).split(".gz")[0]
-    db_name = f"results/isoquant/{filename}.db"
+    db_name = os.path.join("results/isoquant", wildcards.tissue, "{filename}.db")
     if os.path.exists(db_name):
         return db_name
     else:
@@ -28,9 +28,11 @@ rule isoquant_run:
         ref_fa="resources/reference.fa",
         annot_gtf=check_for_annotation_db,
     output:
-        gtf=temp("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf")
+        gtf=temp("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf"),
+        db=f"results/isoquant/{{tissue}}/{os.path.basename(config["annot_gtf"]).split(".gz")[0]}.db",
     log:
         "logs/isoquant/{tissue}.log",
+        "results/isoquant/{tissue}/isoquant.log",
     params:
         output_folder=lambda wc, output: output["gtf"].replace("/OUT/OUT.transcript_models.gtf", ""),
     threads: 32
@@ -40,7 +42,11 @@ rule isoquant_run:
     conda:
         "../envs/isoquant.yaml"
     shell:
-        "isoquant.py --reference {input.ref_fa} --genedb {input.annot_gtf} --bam {input.bams} --data_type pacbio_ccs -o {params.output_folder} --threads {threads} --complete_genedb --sqanti_output > {log} 2>&1"
+        """
+        isoquant.py --reference {input.ref_fa} --genedb {input.annot_gtf} --bam {input.bams} \
+                    --data_type pacbio_ccs -o {params.output_folder} --threads {threads} \
+                    --complete_genedb --sqanti_output > {log[0]} 2>&1
+        """
 
 
 rule isoquant_transcriptomes:
