@@ -39,6 +39,7 @@ rule isoquant_run:
     resources:
         mem_mb=512 * 1024,
         runtime_min=12 * 60,
+        disk_mb=lambda wc, input: 4*input.size_mb,
     conda:
         "../envs/isoquant.yaml"
     shell:
