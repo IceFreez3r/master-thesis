@@ -26,8 +26,8 @@ PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 flair:
   # FLAIRs memory consumption drastically increase for .bed files over 1GB
   # If the .bed file is larger than this, it will be split by chromosome
-  # Using 1.01e9 and not just 1e9 because lung is just ever so slightly over 1GB
-  bed_split_size: 1.01e9
+  # Using 1.05e9 and not just 1e9 because lung is just ever so slightly over 1GB
+  bed_split_size: 1.05e9
 
 isotools:
   query: "BALANCED"
@@ -64,7 +64,7 @@ cerberus:
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
 
-# Reduces bam and gtf files to chr15 for testing
+# Reduces bam files to chr15 for testing
 test_run: False
 # Replace resources from above, when test_run is set to True
 test_config:

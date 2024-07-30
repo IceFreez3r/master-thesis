@@ -59,4 +59,4 @@ elif sys.argv[1] == "copy":
         for tool in tools:
             classification_path = os.path.join(results_dir, tool, "qc", tissue, "*_classification.txt")
             for file in glob.glob(classification_path):
-                os.system(f"cp {file} {os.path.join(destination, tissue + '_' + tool + '_' + os.path.basename(file))}")
+                os.system(f"cp {file} {os.path.join(destination, tissue + '_' + tool + '_' + os.path.basename(file).split('_')[1])}")
