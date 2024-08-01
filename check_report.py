@@ -7,18 +7,18 @@ results_dir = "/project/hfa_work/ENCODE/code/snakemake-pipeline/results/sqanti"
 TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
 TISSUES = ["aorta", "brain", "colon", "heart", "lung", "muscle"]
 
-def get_tools(*argv):
-    if len(argv) == 1 and argv[0] in TOOLS:
+def get_tools(argv):
+    if len(argv) >= 1 and argv[0] in TOOLS:
         return [argv[0]]
-    elif len(argv) == 2 and argv[1] in TOOLS:
+    elif len(argv) >= 2 and argv[1] in TOOLS:
         return [argv[1]]
     else:
         return TOOLS
 
-def get_tissues(*argv):
-    if len(argv) == 1 and argv[0] in TISSUES:
+def get_tissues(argv):
+    if len(argv) >= 1 and argv[0] in TISSUES:
         return [argv[0]]
-    elif len(argv) == 2 and argv[1] in TISSUES:
+    elif len(argv) >= 2 and argv[1] in TISSUES:
         return [argv[1]]
     else:
         return TISSUES
@@ -29,16 +29,16 @@ if len(sys.argv) < 2 or sys.argv[1] == "list":
             if file.endswith(".html"):
                 print(os.path.join(root, file))
 elif sys.argv[1] == "check":
-    tools = get_tools(sys.argv[2:-1])
-    tissues = get_tissues(sys.argv[2:-1])
+    tools = get_tools(sys.argv[2:])
+    tissues = get_tissues(sys.argv[2:])
     for tissue in tissues:
         for tool in tools:
             report_path = os.path.join(results_dir, tool, "qc", tissue, "*.html")
             for file in glob.glob(report_path):
                 print(tissue, tool, file, sep='\t')
 elif sys.argv[1] == "open":
-    tools = get_tools(sys.argv[2:-1])
-    tissues = get_tissues(sys.argv[2:-1])
+    tools = get_tools(sys.argv[2:])
+    tissues = get_tissues(sys.argv[2:])
     cmd = "firefox"
     for tissue in tissues:
         for tool in tools:
@@ -53,8 +53,8 @@ elif sys.argv[1] == "copy":
     destination = sys.argv[2]
     os.makedirs(destination, exist_ok=True)
 
-    tools = get_tools(sys.argv[3:-1])
-    tissues = get_tissues(sys.argv[3:-1])
+    tools = get_tools(sys.argv[3:])
+    tissues = get_tissues(sys.argv[3:])
     for tissue in tissues:
         for tool in tools:
             classification_path = os.path.join(results_dir, tool, "qc", tissue, "*_classification.txt")
