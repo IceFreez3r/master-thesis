@@ -8,7 +8,7 @@ localrules:
     preprocess_polyA_peaks,
     samtools_index
 
-WORKING_TOOLS = ["flair", "isotools", "isoquant", "stringtie"]
+WORKING_TOOLS = ["flair", "isoquant", "isotools", "stringtie"]
 
 if (config["test_run"]):
     for overwrite in config["test_config"]:
@@ -231,3 +231,27 @@ rule test_long_read_bam:
         "../envs/samtools.yaml"
     shell:
         "(samtools view -b {input.bam} chr15 > {output}) > {log} 2>&1"
+
+
+rule sort_gzip_gtf:
+    input:
+        "results/{tool}/transcriptome/{tissue}.gtf"
+    output:
+        "results/{tool}/transcriptome/{tissue}_sorted.gtf.gz"
+    log:
+        "logs/common/sort_gzip_gtf/{tool}_{tissue}.log"
+    shell:
+        """
+        (grep -v "^#" {input} | sort -k1,1 -k4,4n | bgzip -c > {output}) > {log} 2>&1
+        """
+
+
+rule index_gtf:
+    input:
+        "{path}_sorted.gtf.gz"
+    output:
+        "{path}_sorted.gtf.gz.tbi"
+    log:
+        "logs/common/index_gtf/{path}.log"
+    shell:
+        "tabix -p gff {input} > {log} 2>&1"
