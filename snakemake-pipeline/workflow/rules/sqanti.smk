@@ -26,6 +26,7 @@ rule sqanti_qc:
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.pdf",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_corrected.fasta",
+        "results/sqanti/{tool}/qc/{tissue}/{tissue}_junctions.txt",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}.params.txt",
         gtf="results/sqanti/{tool}/qc/{tissue}/{tissue}_corrected.gtf",
         # rnaseq_fofn = "results/sqanti/rnaseq_fofn/{tool}/{tissue}.fofn"

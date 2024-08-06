@@ -29,5 +29,7 @@ include: "rules/talon.smk"
 
 rule all:
     input:
-        expand("results/{tool}/transcriptome/{tissue}.gtf", tool=WORKING_TOOLS, tissue=util.tissues),
+        expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz", tool=WORKING_TOOLS, tissue=util.tissues),
+        expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS, tissue=util.tissues),
+        expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues),
         "results/meta/dag.pdf"
