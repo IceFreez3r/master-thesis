@@ -13,9 +13,9 @@ rule isotools_create:
         reference_fai="resources/reference.fa.fai",
         sample_table=config["sample_table"],
     output:
-        gtf="results/isotools/transcriptome/{tissue}.gtf",
+        gtf="results/isotools{conda}/transcriptome/{tissue}.gtf",
     log:
-        "logs/isotools/{tissue}.log",
+        "logs/isotools{conda}/{tissue}.log",
     params:
         samples=util.samples,
         query=config["isotools"]["query"],
@@ -25,6 +25,6 @@ rule isotools_create:
         runtime_min=6 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment
-        "isotools"
+        "isotools{conda}"
     script:
         "../scripts/isotools/create.py"
