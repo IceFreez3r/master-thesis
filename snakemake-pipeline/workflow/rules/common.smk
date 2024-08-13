@@ -8,7 +8,7 @@ localrules:
     preprocess_polyA_peaks,
     samtools_index
 
-WORKING_TOOLS = ["flair", "isoquant", "isotools", "stringtie"]
+WORKING_TOOLS = ["flair", "isoquant", "isotools", "isotools_new_tss", "stringtie"]
 
 if (config["test_run"]):
     for overwrite in config["test_config"]:
