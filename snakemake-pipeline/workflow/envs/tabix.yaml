@@ -1,6 +1,6 @@
-name: minimap2
+name: star
 channels:
  - bioconda
  - conda-forge
 dependencies:
-  - kallisto=0.50
+  - tabix
