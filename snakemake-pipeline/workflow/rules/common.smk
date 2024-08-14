@@ -253,5 +253,7 @@ rule index_gtf:
         "{path}_sorted.gtf.gz.tbi"
     log:
         "logs/common/index_gtf/{path}.log"
+    conda:
+        "../envs/tabix.yaml"
     shell:
         "tabix -p gff {input} > {log} 2>&1"
