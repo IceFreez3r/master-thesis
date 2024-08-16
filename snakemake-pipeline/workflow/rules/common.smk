@@ -97,35 +97,53 @@ util = Utility(config)
 
 class ENCODE_data:
     def __init__(self):
-        self.fragment_sizes = {}
+        self.fragment_sizes = self.import_fragment_sizes()
         self.has_error = False
 
+    def import_fragment_sizes(self):
+        if not os.path.exists("resources/fragment_sizes.tsv"):
+            return pd.DataFrame(columns=["sample", "fragment_size", "fragment_sd"])
+        return pd.read_csv("resources/fragment_sizes.tsv", sep="\t")
+
+    def export_fragment_sizes(self):
+        self.fragment_sizes.to_csv("resources/fragment_sizes.tsv", sep="\t", index=False)
+
+    @property
+    def samples(self):
+        return self.fragment_sizes["sample"].tolist()
+
     def fragment_mean(self, sample):
-        if not sample in self.fragment_sizes:
+        if not sample in self.samples:
             self.fragment_size_from_encode(sample)
-        return self.fragment_sizes[sample][0]
+        return self.fragment_sizes.loc[self.fragment_sizes["sample"] == sample, "fragment_size"].values[0]
 
     def fragment_sd(self, sample):
-        if not sample in self.fragment_sizes:
+        if not sample in self.samples:
             self.fragment_size_from_encode(sample)
-        return self.fragment_sizes[sample][1]
+        return self.fragment_sizes.loc[self.fragment_sizes["sample"] == sample, "fragment_sd"].values[0]
 
     def fragment_size_from_encode(self, sample):
         if not self.has_error:
             url = f"https://www.encodeproject.org/experiments/{sample}/?format=json"
-            response = requests.get(url)
+            try:
+                response = requests.get(url)
+            except requests.exceptions.SSLError as e:
+                print(f"[WARN] Error getting fragment size from ENCODE for {sample}: {e}")
+                print("[WARN] Defaulting to fragment size 200 and sd 30 for all samples")
+                self.has_error = True
             try:
                 response.raise_for_status()
                 data = response.json()
-                fragment_size = data["replicates"][0]["library"]["average_fragment_size"]
-                fragment_sd = data["replicates"][0]["library"]["fragment_length_CV"]
-                self.fragment_sizes[sample] = (fragment_size, fragment_sd)
+                fragment_size = int(data["replicates"][0]["library"]["average_fragment_size"])
+                fragment_sd = int(data["replicates"][0]["library"]["fragment_length_CV"])
+                self.fragment_sizes = pd.concat([self.fragment_sizes, pd.DataFrame({"sample": [sample], "fragment_size": [fragment_size], "fragment_sd": [fragment_sd]})])
+                self.export_fragment_sizes()
                 return
-            except requests.exceptions.HTTPError:
-                print(f"[WARN] Error getting fragment size from ENCODE for {sample}")
+            except requests.exceptions.HTTPError as e:
+                print(f"[WARN] Error getting fragment size from ENCODE for {sample}: {e}")
                 print("[WARN] Defaulting to fragment size 200 and sd 30 for all samples")
                 self.has_error = True
-        self.fragment_sizes[sample] = (200, 30)
+        self.fragment_sizes = pd.concat([self.fragment_sizes, pd.DataFrame({"sample": [sample], "fragment_size": [200], "fragment_sd": [30]})])
 
 encode = ENCODE_data()
 
