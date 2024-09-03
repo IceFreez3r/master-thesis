@@ -1,3 +1,7 @@
+# ! Some of the tools used by this pipeline have poor conda support and require manual creation of the environment
+# ! with the exact name from the .yaml file. Snakemake will fail at runtime if the environment is not available!
+# ! See workflow/envs/manual/ for the corresponding environment files
+
 # GENCODE or Ensembl
 annot_source: GENCODE
 genome_name: GRCh38
@@ -28,6 +32,15 @@ flair:
   # If the .bed file is larger than this, it will be split by chromosome
   # Using 1.05e9 and not just 1e9 because lung is just ever so slightly over 1GB
   bed_split_size: 1.05e9
+
+# Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
+# * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
+# * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
+tools: ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", "stringtie"]
+# Used commits for reference:
+# v0: f2c1237c3c3458d07ed4f7637ca3a05c14581f27
+# v1: e416497366918ceba32751cacadf61be716f18ed
+# v2: 516081b0d56dbcde9c4b82bce0f898900ab8549c
 
 isotools:
   query: "BALANCED"

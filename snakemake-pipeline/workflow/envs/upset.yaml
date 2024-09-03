@@ -1,0 +1,11 @@
+name: upset
+channels:
+ - conda-forge
+ - bioconda
+dependencies:
+  - upsetplot
+  - python-duckdb
+  - pysam
+  - pandas
+  - matplotlib
+  - numpy

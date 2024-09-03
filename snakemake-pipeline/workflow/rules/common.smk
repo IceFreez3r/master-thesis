@@ -8,7 +8,7 @@ localrules:
     preprocess_polyA_peaks,
     samtools_index
 
-WORKING_TOOLS = ["flair", "isoquant", "isotools", "isotools_new_tss", "stringtie"]
+WORKING_TOOLS = config["tools"]
 
 if (config["test_run"]):
     for overwrite in config["test_config"]:
@@ -275,3 +275,27 @@ rule index_gtf:
         "../envs/tabix.yaml"
     shell:
         "tabix -p gff {input} > {log} 2>&1"
+
+
+def tissue_gtfs(wildcards):
+    return {tool: f"results/{tool}/transcriptome/{wildcards.tissue}_sorted.gtf.gz" for tool in WORKING_TOOLS}
+
+
+rule tool_overlap:
+    input:
+        unpack(tissue_gtfs),
+        tbis = expand("results/{tool}/transcriptome/{{tissue}}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS),
+    output:
+        upset = "results/plots/{tissue}/upset_all.png",
+        upset_filtered = "results/plots/{tissue}/upset_filtered.png",
+    log:
+        "logs/common/tool_overlap/{tissue}.log"
+    params:
+        tools = WORKING_TOOLS,
+        tss_error = 20,
+        pas_error = 20,
+        junction_error = 5,
+    conda:
+        "../envs/upset.yaml"
+    script:
+        "../scripts/common/tool_overlap.py"
