@@ -96,14 +96,16 @@ HAVING
     COUNT(*) = MAX(t.max_splice_site_index) + 1
                """
 
+    logger.info(f"Running query for {tool}")
     matches = duckdb.sql(query).df()
+    logger.info(f"Matches: {matches.shape}")
 
     # Happens when multiple transcripts from the new tool match the same transcript from the previous tools
     # or when a transcript from the new tool matches multiple transcripts from the previous tools
     if remove_duplicates:
-        logger.info("with duplicates:", matches.shape)
+        logger.info(f"with duplicates: {matches.shape}")
         matches = matches.drop_duplicates(subset=["id"]).drop_duplicates(subset=["transcript_id"])
-        logger.info("without duplicates", matches.shape)
+        logger.info(f"without duplicates: {matches.shape}")
 
     # Add matches to the df
     tool_overlap = tool_overlap.merge(matches, on="id", how="left")
@@ -130,7 +132,7 @@ overlap = pd.DataFrame(columns=["chr", "start", "end", "strand", "max_splice_sit
 overlap_exons = pd.DataFrame(columns=["id", "index", "position"])
 
 for tool in tools:
-    logger.info("Processing", tool)
+    logger.info(f"Processing {tool}")
     overlap, overlap_exons = add_transcript_overlap_duckdb(tool, overlap, overlap_exons)
 
 # iterate over all combination of tools and count the number of transcripts that are shared
@@ -145,14 +147,17 @@ for combination in combinations:
 
 counts = pd.DataFrame(counts, columns=["tools", "shared", "unique"])
 
+logger.info("Creating upset plots")
 upset = from_memberships(counts["tools"].to_list(), data=counts["unique"].to_list())
 plot(upset, orientation='horizontal', element_size=30)
 plt.savefig(snakemake.output.upset)
-plt.show()
+plt.close()
 
 # remove stringtie and flair unique entries
 counts_filtered = counts[(counts["tools"] != ("flair",)) & (counts["tools"] != ("stringtie",))]
 upset = from_memberships(counts_filtered["tools"].to_list(), data=counts_filtered["unique"].to_list())
 plot(upset, orientation='horizontal', element_size=30)
 plt.savefig(snakemake.output.upset_filtered)
-plt.show()
+plt.close()
+
+logger.info("Done")

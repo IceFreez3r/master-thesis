@@ -277,24 +277,33 @@ rule index_gtf:
         "tabix -p gff {input} > {log} 2>&1"
 
 
-def tissue_gtfs(wildcards):
-    return {tool: f"results/{tool}/transcriptome/{wildcards.tissue}_sorted.gtf.gz" for tool in WORKING_TOOLS}
+def get_tools(wildcards):
+    tools = WORKING_TOOLS
+    if wildcards.tissue == "lung":
+        # FLAIR produces an invalid GTF for lung
+        tools = [tool for tool in WORKING_TOOLS if tool != "flair"]
+    return tools
 
+def tissue_gtfs(wildcards):
+    tools = get_tools(wildcards)
+    return {f"{tool}{ext}": f"results/{tool}/transcriptome/{wildcards.tissue}_sorted.gtf.gz{ext}" for tool in tools for ext in ["", ".tbi"]}
 
 rule tool_overlap:
     input:
         unpack(tissue_gtfs),
-        tbis = expand("results/{tool}/transcriptome/{{tissue}}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS),
     output:
         upset = "results/plots/{tissue}/upset_all.png",
         upset_filtered = "results/plots/{tissue}/upset_filtered.png",
     log:
         "logs/common/tool_overlap/{tissue}.log"
     params:
-        tools = WORKING_TOOLS,
+        tools = get_tools,
         tss_error = 20,
         pas_error = 20,
         junction_error = 5,
+    resources:
+        mem_mb = 32 * 1024,
+        runtime_min = 60,
     conda:
         "../envs/upset.yaml"
     script:
