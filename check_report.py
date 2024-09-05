@@ -4,7 +4,7 @@ import glob
 
 
 results_dir = "/path/to/code/snakemake-pipeline/results/sqanti"
-TOOLS = ["flair", "isoquant", "isotools", "isotools_new_tss", "stringtie"]
+TOOLS = ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", "stringtie"]
 TISSUES = ["aorta", "brain", "colon", "heart", "lung", "muscle"]
 
 def get_tools(argv):
