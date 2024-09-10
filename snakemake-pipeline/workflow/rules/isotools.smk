@@ -14,6 +14,7 @@ rule isotools_create:
         sample_table=config["sample_table"],
     output:
         gtf="results/isotools{conda}/transcriptome/{tissue}.gtf",
+        pkl="results/isotools{conda}/pkl/{tissue}.pkl",
     log:
         "logs/isotools{conda}/{tissue}.log",
     params:
