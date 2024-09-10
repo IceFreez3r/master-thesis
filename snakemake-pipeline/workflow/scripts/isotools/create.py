@@ -34,3 +34,4 @@ isoseq.add_qc_metrics(genome_path, progress_bar=False)
 isoseq.add_orf_prediction(genome_path, progress_bar=False)
 
 isoseq.write_gtf(snakemake.output.gtf, gzip=False, query=query)
+isoseq.save(snakemake.output.pkl)
