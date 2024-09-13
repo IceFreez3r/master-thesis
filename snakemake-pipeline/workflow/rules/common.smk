@@ -288,6 +288,12 @@ def tissue_gtfs(wildcards):
     tools = get_tools(wildcards)
     return {f"{tool}{ext}": f"results/{tool}/transcriptome/{wildcards.tissue}_sorted.gtf.gz{ext}" for tool in tools for ext in ["", ".tbi"]}
 
+rule overlap:
+    input:
+        expand("results/plots/{tissue}/upset_all.png", tissue=util.tissues),
+        expand("results/plots/{tissue}/upset_filtered.png", tissue=util.tissues),
+
+
 rule tool_overlap:
     input:
         unpack(tissue_gtfs),
@@ -301,9 +307,9 @@ rule tool_overlap:
         tss_error = 20,
         pas_error = 20,
         junction_error = 5,
+    threads: 16
     resources:
-        mem_mb = 32 * 1024,
-        runtime_min = 60,
+        runtime_min = 2 * 60,
     conda:
         "../envs/upset.yaml"
     script:
