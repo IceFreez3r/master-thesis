@@ -8,7 +8,7 @@ rule sqanti:
 
 rule sqanti_qc:
     input:
-        gtf="results/{tool}/transcriptome/{tissue}.gtf",
+        gtf = "results/{tool}/transcriptome/{tissue}.gtf",
         ref_gtf = "resources/annotation.gtf",
         cage = "resources/CAGE/{tissue}.bed",
         ref_fa = "resources/reference.fa",
