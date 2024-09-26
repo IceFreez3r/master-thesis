@@ -3,7 +3,8 @@ import os
 
 localrules:
     flair_combine_bed12,
-    flair_transcriptomes
+    flair_transcriptomes,
+    flair_fix
 
 rule flair:
     input:
@@ -88,9 +89,27 @@ rule flair_collapse:
         "../scripts/flair/collapse.py"
 
 
+rule flair_fix:
+    input:
+        gtf = "results/flair/collapse/{tissue}.isoforms.gtf",
+    output:
+        gtf = temp("results/flair/fixed/{tissue}.isoforms.gtf"),
+    run:
+        with open(input.gtf) as f, open(output.gtf, "w") as out:
+            for line in f:
+                if line.startswith("#"):
+                    out.write(line)
+                else:
+                    fields = line.split("\t")
+                    # FLAIR produces 0-length/negative length exons for lung
+                    # See [GitHub issue](https://github.com/BrooksLabUCSC/flair/issues/356)
+                    fields[4] = str(max(int(fields[3]) + 1, int(fields[4])))
+                    out.write("\t".join(fields))
+
+
 rule flair_transcriptomes:
     input:
-        gtf="results/flair/collapse/{tissue}.isoforms.gtf",
+        gtf="results/flair/fixed/{tissue}.isoforms.gtf",
     output:
         "results/flair/transcriptome/{tissue}.gtf",
     shell:

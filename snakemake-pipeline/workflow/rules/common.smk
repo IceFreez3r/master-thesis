@@ -307,9 +307,10 @@ rule tool_overlap:
         tss_error = 20,
         pas_error = 20,
         junction_error = 5,
-    threads: 16
+    threads: 32
     resources:
-        runtime_min = 2 * 60,
+        runtime_min = 4 * 60,
+        mem_mb = 32 * 1024,
     conda:
         "../envs/upset.yaml"
     script:
