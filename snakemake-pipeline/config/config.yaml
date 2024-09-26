@@ -36,7 +36,7 @@ flair:
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
-tools: ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", "stringtie"]
+tools: ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", 'isotools_v3', "stringtie"]
 # Used commits for reference:
 # v0: f2c1237c3c3458d07ed4f7637ca3a05c14581f27
 # v1: e416497366918ceba32751cacadf61be716f18ed
