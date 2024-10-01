@@ -94,8 +94,11 @@ rule flair_fix:
         gtf = "results/flair/collapse/{tissue}.isoforms.gtf",
     output:
         gtf = temp("results/flair/fixed/{tissue}.isoforms.gtf"),
+    log:
+        "logs/flair/fix/{tissue}.log",
     run:
-        with open(input.gtf) as f, open(output.gtf, "w") as out:
+        with open(input.gtf) as f, open(output.gtf, "w") as out, open(log[0], "w") as log:
+            changed = 0
             for line in f:
                 if line.startswith("#"):
                     out.write(line)
@@ -103,8 +106,13 @@ rule flair_fix:
                     fields = line.split("\t")
                     # FLAIR produces 0-length/negative length exons for lung
                     # See [GitHub issue](https://github.com/BrooksLabUCSC/flair/issues/356)
-                    fields[4] = str(max(int(fields[3]) + 1, int(fields[4])))
+                    start = int(fields[3])
+                    end = int(fields[4])
+                    if start >= end:
+                        changed += 1
+                        fields[4] = str(start + 1)
                     out.write("\t".join(fields))
+            log.write(f"Fixed {changed} zero or negative length exons\n")
 
 
 rule flair_transcriptomes:
