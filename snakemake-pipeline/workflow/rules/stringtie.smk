@@ -46,5 +46,7 @@ rule stringtie_filter:
         "logs/stringtie/filter/{tissue}.log",
     conda:
         "../envs/pyranges.yaml"
+    resources:
+        disk_mb = lambda wc, input: max(4 * input.size_mb, 1000)
     script:
         "../scripts/stringtie/filter.py"
