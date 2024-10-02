@@ -277,15 +277,15 @@ rule index_gtf:
         "tabix -p gff {input} > {log} 2>&1"
 
 
-def get_tools(wildcards):
+def get_overlap_tools(wildcards):
     tools = WORKING_TOOLS
-    if wildcards.tissue == "lung":
-        # FLAIR produces an invalid GTF for lung
-        tools = [tool for tool in WORKING_TOOLS if tool != "flair"]
+    # Only take first isotools tool
+    first = [tool for tool in tools if "isotools" in tool][0]
+    tools = [tool for tool in tools if not "isotools" in tool or tool == first]
     return tools
 
 def tissue_gtfs(wildcards):
-    tools = get_tools(wildcards)
+    tools = get_overlap_tools(wildcards)
     return {f"{tool}{ext}": f"results/{tool}/transcriptome/{wildcards.tissue}_sorted.gtf.gz{ext}" for tool in tools for ext in ["", ".tbi"]}
 
 rule overlap:
@@ -303,7 +303,7 @@ rule tool_overlap:
     log:
         "logs/common/tool_overlap/{tissue}.log"
     params:
-        tools = get_tools,
+        tools = get_overlap_tools,
         tss_error = 20,
         pas_error = 20,
         junction_error = 5,
