@@ -33,6 +33,6 @@ rule all:
         expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz", tool=WORKING_TOOLS, tissue=util.tissues),
         expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS, tissue=util.tissues),
         expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues),
-        expand("results/plots/{tissue}/upset_all.png", tissue=util.tissues),
-        expand("results/plots/{tissue}/upset_filtered.png", tissue=util.tissues),
+        expand("results/plots/upset/all/{tissue}.png", tissue=util.tissues),
+        expand("results/plots/upset/filtered/{tissue}.png", tissue=util.tissues),
         "results/meta/dag.pdf",
