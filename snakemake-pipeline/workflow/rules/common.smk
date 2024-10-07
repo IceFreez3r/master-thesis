@@ -298,8 +298,8 @@ rule tool_overlap:
     input:
         unpack(tissue_gtfs),
     output:
-        upset = "results/plots/{tissue}/upset_all.png",
-        upset_filtered = "results/plots/{tissue}/upset_filtered.png",
+        upset = "results/plots/upset/all/{tissue}.png",
+        upset_filtered = "results/plots/upset/filtered/{tissue}.png",
     log:
         "logs/common/tool_overlap/{tissue}.log"
     params:

@@ -19,6 +19,8 @@ tss_error = snakemake.params.tss_error
 pas_error = snakemake.params.pas_error
 junction_error = snakemake.params.junction_error
 
+max_isotools_suffix = max([int(t.replace('isotools_v', '')) for t in tools if 'isotools_v' in t])
+
 def get_tabix(tool):
     return pysam.TabixFile(snakemake.input[tool])
 
@@ -146,17 +148,20 @@ for combination in combinations:
                    overlap[(overlap[inverted_combination].isna().all(axis=1)) & (overlap[[*combination]].notna().all(axis=1))].shape[0]))
 
 counts = pd.DataFrame(counts, columns=["tools", "shared", "unique"])
+if max_isotools_suffix == 0:
+    # Replace isotools_v0 with isotools
+    counts["tools"] = counts["tools"].apply(lambda x: tuple([t.replace('isotools_v0', 'isotools') for t in x]))
 
 logger.info("Creating upset plots")
 upset = from_memberships(counts["tools"].to_list(), data=counts["unique"].to_list())
-plot(upset, orientation='horizontal', element_size=30)
+plot(upset, sort_categories_by='input', orientation='horizontal', element_size=30)
 plt.savefig(snakemake.output.upset)
 plt.close()
 
-# remove stringtie and flair unique entries
-counts_filtered = counts[(counts["tools"] != ("flair",)) & (counts["tools"] != ("stringtie",))]
+# Exclude single tool
+counts_filtered = counts[counts["tools"].apply(len) > 1]
 upset = from_memberships(counts_filtered["tools"].to_list(), data=counts_filtered["unique"].to_list())
-plot(upset, orientation='horizontal', element_size=30)
+plot(upset, sort_categories_by='input', orientation='horizontal', element_size=30)
 plt.savefig(snakemake.output.upset_filtered)
 plt.close()
 
