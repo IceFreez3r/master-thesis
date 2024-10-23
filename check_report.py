@@ -1,10 +1,16 @@
 import os
 import sys
 import glob
+import yaml
 
 
 results_dir = "/project/hfa_work/ENCODE/code/snakemake-pipeline/results/sqanti"
-TOOLS = ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", "isotools_v3", "stringtie"]
+config_path = "/project/hfa_work/ENCODE/code/snakemake-pipeline/config/config.yaml"
+with open(config_path) as conf:
+    config = yaml.load(conf, Loader=yaml.FullLoader)
+    conf.close()
+
+TOOLS = config["tools"]
 TISSUES = ["aorta", "brain", "colon", "heart", "lung", "muscle"]
 
 def get_tools(argv):
