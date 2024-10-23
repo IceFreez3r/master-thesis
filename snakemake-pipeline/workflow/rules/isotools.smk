@@ -20,6 +20,7 @@ rule isotools_create:
     params:
         samples=util.samples,
         query=config["isotools"]["query"],
+        unify_ends=lambda wildcards: config["isotools"]["unify_ends"].get('isotools' + wildcards.conda, True),
     threads: 1
     resources:
         mem_mb=128 * 1024,
