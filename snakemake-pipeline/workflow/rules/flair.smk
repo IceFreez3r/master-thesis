@@ -98,7 +98,6 @@ rule flair_fix:
         "logs/flair/fix/{tissue}.log",
     run:
         with open(input.gtf) as f, open(output.gtf, "w") as out, open(log[0], "w") as log:
-            changed = 0
             for line in f:
                 if line.startswith("#"):
                     out.write(line)
@@ -109,10 +108,9 @@ rule flair_fix:
                     start = int(fields[3])
                     end = int(fields[4])
                     if start >= end:
-                        changed += 1
+                        log.write(f"Fixing {end - start} length exon: {line}")
                         fields[4] = str(start + 1)
                     out.write("\t".join(fields))
-            log.write(f"Fixed {changed} zero or negative length exons\n")
 
 
 rule flair_transcriptomes:
