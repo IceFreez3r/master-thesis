@@ -19,6 +19,9 @@ samples = snakemake.params.samples
 query = snakemake.params.query
 metadata = pd.read_csv(metadata_path, sep="\t")
 
+unify_ends = snakemake.params.get("unify_ends")
+
+logger.info(f"Creating isotools object for tissue {tissue} from reference")
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)
 
 for sample, alignment in zip(samples, alignments):
@@ -26,12 +29,12 @@ for sample, alignment in zip(samples, alignments):
         logger.error(f"File {alignment} does not exist")
         continue
     group = metadata[metadata["sample ID"] == sample]["group"].values[0]
+    logger.info(f"Adding sample {sample} from {alignment} to isotools object")
     isoseq.add_sample_from_bam(fn=alignment, sample_name=sample, group=group, progress_bar=False)
 
-# compute qc metrics
-isoseq.add_qc_metrics(genome_path, progress_bar=False)
-# add ORF predictions
-isoseq.add_orf_prediction(genome_path, progress_bar=False)
+logger.info("Computing qc metrics. Unifying ends: {unify_ends}")
+isoseq.add_qc_metrics(genome_path, progress_bar=False, unify_ends=unify_ends)
 
+logger.info("Exporting isotools to GTF and pickle")
 isoseq.write_gtf(snakemake.output.gtf, gzip=False, query=query)
 isoseq.save(snakemake.output.pkl)
