@@ -9,7 +9,7 @@ import logging
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO, filename=snakemake.log[0])
 
-logger = logging.getLogger("isotools")
+logger = logging.getLogger("overlap")
 # Disable future warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -151,6 +151,9 @@ counts = pd.DataFrame(counts, columns=["tools", "shared", "unique"])
 if max_isotools_suffix == 0:
     # Replace isotools_v0 with isotools
     counts["tools"] = counts["tools"].apply(lambda x: tuple([t.replace('isotools_v0', 'isotools') for t in x]))
+
+logger.info("Writing counts to file")
+counts.to_csv(snakemake.output.counts, index=False, sep="\t")
 
 logger.info("Creating upset plots")
 upset = from_memberships(counts["tools"].to_list(), data=counts["unique"].to_list())

@@ -300,6 +300,7 @@ rule tool_overlap:
     output:
         upset = "results/plots/upset/all/{tissue}.png",
         upset_filtered = "results/plots/upset/filtered/{tissue}.png",
+        counts = "resources/overlap/{tissue}.tsv",
     log:
         "logs/common/tool_overlap/{tissue}.log"
     params:
@@ -315,3 +316,17 @@ rule tool_overlap:
         "../envs/upset.yaml"
     script:
         "../scripts/common/tool_overlap.py"
+
+
+rule tool_overlap_mean:
+    input:
+        expand("resources/overlap/{tissue}.tsv", tissue=util.tissues),
+    output:
+        upset = "results/plots/upset/all/mean.png",
+        upset_filtered = "results/plots/upset/filtered/mean.png",
+    log:
+        "logs/common/tool_overlap_mean.log"
+    conda:
+        "../envs/upset.yaml"
+    script:
+        "../scripts/common/tool_overlap_mean.py"
