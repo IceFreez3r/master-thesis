@@ -1,6 +1,6 @@
 rule isotools:
     input:
-        expand("results/isotools/transcriptome/{tissue}.gtf", tissue=util.tissues),
+        expand("results/isotools_v0/transcriptome/{tissue}.gtf", tissue=util.tissues),
 
 
 rule isotools_create:
@@ -18,7 +18,7 @@ rule isotools_create:
     log:
         "logs/isotools{conda}/{tissue}.log",
     params:
-        samples=util.samples,
+        samples=lambda wildcards: util.samples_for_tissue(wildcards.tissue),
         query=config["isotools"]["query"],
         unify_ends=lambda wildcards: config["isotools"]["unify_ends"].get('isotools' + wildcards.conda, True),
     threads: 1
