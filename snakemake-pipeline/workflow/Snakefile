@@ -35,4 +35,5 @@ rule all:
         expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues),
         "results/plots/upset/all/mean.png",
         "results/plots/upset/filtered/mean.png",
+        expand("results/plots/sqanti/{version}/transcript_counts.png", version=["isotools", "_v0", "_v2"]),
         "results/meta/dag.pdf",

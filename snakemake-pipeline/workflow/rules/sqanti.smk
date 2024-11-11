@@ -61,41 +61,62 @@ rule sqanti_qc:
             df -h $MXQ_JOB_TMPDIR
         ) > {log.out} 2> {log.error}
         """
-        # """
-        # (
-        #     # Create .fofn file of .fastq.gz files
-        #     for file in {input.fastq_gz}; do
-        #         echo ${{file}}
-        #     done > {output.rnaseq_fofn}
 
-        #     python {params.sqanti_qc} --CAGE_peak {input.cage}\
-        #         --short_reads {output.rnaseq_fofn} --expression {params.expression}\
-        #         --polyA_motif_list {input.polyA_motifs} --polyA_peak {input.polyA_peaks}\
-        #         -d {params.output_dir}\
-        #         {params.extra} {params.extra_user} --cpus {threads}\
-        #         {input.gtf} {input.ref_gtf} {input.ref_fa}
-        #     df -h $MXQ_JOB_TMPDIR
-        # ) > {log.out} 2> {log.error}
-        # """
+def get_sqanti_tools(wildcards):
+    if wildcards["version"] == "isotools":
+        return [tool for tool in WORKING_TOOLS if "isotools" in tool]
+    else:
+        return [tool for tool in WORKING_TOOLS if not "isotools" in tool or "isotools" + wildcards["version"] == tool]
 
-rule sqanti_filter:
+rule sqanti_comparison_plots:
     input:
-        sqanti_class = "results/sqanti/qc/{tissue}/{tissue}.classification.txt", # TODO
+        classifications = expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt", tool=get_sqanti_tools, tissue=util.tissues),
     output:
-        classification = "results/sqanti/filter/{filter_type}/{tissue}/{tissue}.classification.filtered.txt",
-    params:
-        output_dir = "results/sqanti/filter/{tissue}/",
-        output_prefix = "results/sqanti/filter/{tissue}/"
-        """
-        TODO: Do I need these?
-        --isoAnnotGFF3 ISOANNOTGFF3: Path to the isoAnnotLite GFF3 file that is to be filtered.
-        --isoforms ISOFORMS: Path to the fasta/fastq isoform file that is to be filtered.
-        --gtf GTF: Path to the GTF file that is to be filtered.
-        --sam SAM: Path to the SAM alignment of the input fasta/fastq.
-        --faa FAA: Path to the ORF prediction faa file to be filtered by SQANTI3.
-        """
-        # TODO: custom rule file?
+        "results/plots/sqanti/{version}/transcript_counts.png",
+        "results/plots/sqanti/{version}/transcript_counts_subcategory.png",
+        "results/plots/sqanti/{version}/transcript_counts_subcategory_ISM.png",
+        "results/plots/sqanti/{version}/CAGE_support.png",
+        "results/plots/sqanti/{version}/TSS_ratio.png",
+        "results/plots/sqanti/{version}/PolyA_site.png",
+        "results/plots/sqanti/{version}/PolyA_motif.png",
+        "results/plots/sqanti/{version}/CAGE_support_FSM.png",
+        "results/plots/sqanti/{version}/CAGE_support_ISM.png",
+        "results/plots/sqanti/{version}/CAGE_support_NIC.png",
+        "results/plots/sqanti/{version}/CAGE_support_NNC.png",
+        "results/plots/sqanti/{version}/CAGE_support_non_FSM.png",
+        "results/plots/sqanti/{version}/polyA_site_FSM.png",
+        "results/plots/sqanti/{version}/polyA_site_ISM.png",
+        "results/plots/sqanti/{version}/polyA_site_NIC.png",
+        "results/plots/sqanti/{version}/polyA_site_NNC.png",
+        "results/plots/sqanti/{version}/polyA_motif_FSM.png",
+        "results/plots/sqanti/{version}/polyA_motif_ISM.png",
+        "results/plots/sqanti/{version}/polyA_motif_NIC.png",
+        "results/plots/sqanti/{version}/polyA_motif_NNC.png",
+        "results/plots/sqanti/{version}/CAGE_support_monoexons.png",
+        "results/plots/sqanti/{version}/CAGE_support_ISM_no_monoexons.png",
+        "results/plots/sqanti/{version}/CAGE_support_no_monoexons.png",
+        "results/plots/sqanti/{version}/CAGE_support_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{version}/CAGE_support_FSM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{version}/CAGE_support_ISM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{version}/CAGE_support_NIC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{version}/CAGE_support_NNC_no_monoexons_no_3fragment.png",
+        stats = "results/plots/sqanti/{version}/stats.tsv",
+    log:
+        "logs/sqanti/comparison/{version}.log",
     conda:
-        "../envs/sqanti.yaml"
-    shell:
-        "python sqanti3_filter.py {wildcards.filter_type} {input.sqanti_class} -d {params.output_dir} -o {params.output_prefix}"
+        "../envs/seaborn.yaml"
+    params:
+        tissues = util.tissues,
+        tools = lambda wildcards: get_sqanti_tools(wildcards),
+        toolnames = lambda wildcards: [tool.split("_")[0] for tool in get_sqanti_tools(wildcards)] if wildcards["version"] != "isotools" else get_sqanti_tools(wildcards),
+        classifications = lambda wildcards: {
+            tool: {
+                tissue: f"results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt"
+                for tissue in util.tissues
+            }
+            for tool in get_sqanti_tools(wildcards)
+        },
+        output_dir = "results/plots/sqanti/{version}",
+        plot_titles = config["sqanti"]["plot_titles"],
+    script:
+        "../scripts/sqanti/sqanti_comparison_plots.py"
