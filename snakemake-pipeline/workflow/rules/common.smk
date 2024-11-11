@@ -106,6 +106,7 @@ class ENCODE_data:
         return pd.read_csv("resources/fragment_sizes.tsv", sep="\t")
 
     def export_fragment_sizes(self):
+        os.makedirs("resources", exist_ok=True)
         self.fragment_sizes.to_csv("resources/fragment_sizes.tsv", sep="\t", index=False)
 
     @property

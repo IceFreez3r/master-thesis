@@ -1,0 +1,10 @@
+name: seaborn
+channels:
+ - conda-forge
+ - bioconda
+dependencies:
+  - seaborn
+  - matplotlib
+  - pandas
+  - numpy
+  - scipy
