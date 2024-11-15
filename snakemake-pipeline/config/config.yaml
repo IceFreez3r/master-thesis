@@ -70,6 +70,8 @@ sqanti:
   polyA_motif_list: "/path/to/code/SQANTI3/data/polyA_motifs/mouse_and_human.polyA_motif.txt"
   # see https://github.com/ConesaLab/SQANTI3/wiki/Running-SQANTI3-Quality-Control#arguments-and-parameters-in-sqanti3-qc for options
   extra: "--ratio_TSS_metric mean"
+  # Whether to include titles in plots
+  plot_titles: False
 
 cerberus:
   # aggregating all samples with cerberus at once can be memory intensive
