@@ -14,18 +14,14 @@ os.environ["PATH"] = os.environ["PATH"] + os.pathsep + config["path_to_conda"]
 include: "rules/common.smk"
 include: "rules/meta.smk"
 include: "rules/cage.smk"
-include: "rules/cerberus.smk"
 include: "rules/flair.smk"
 include: "rules/isotools.smk"
 include: "rules/isoquant.smk"
-include: "rules/lapa.smk"
 include: "rules/kallisto.smk"
 include: "rules/minimap2.smk"
-include: "rules/rnaseq.smk"
 include: "rules/sqanti.smk"
 include: "rules/star.smk"
 include: "rules/stringtie.smk"
-include: "rules/talon.smk"
 
 
 rule all:

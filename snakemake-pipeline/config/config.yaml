@@ -51,10 +51,6 @@ stringtie:
   # Stringtie needs manual building with make, the path to the binary is needed
   path: /project/hfa_work/ENCODE/code/stringtie/stringtie
 
-talon:
-  # If true, input files to talon will be copied to $TMPDIR before running talon, useful if IO is slow
-  use_tmpdir: true
-
 star:
   # Extra options for STAR
   index:
@@ -72,11 +68,6 @@ sqanti:
   extra: "--ratio_TSS_metric mean"
   # Whether to include titles in plots
   plot_titles: False
-
-cerberus:
-  # aggregating all samples with cerberus at once can be memory intensive
-  # set to None to disable
-  aggregate_at_once_limit: 5
 
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
