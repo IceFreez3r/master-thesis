@@ -23,8 +23,8 @@ def check_for_annotation_db(wildcards):
 
 rule isoquant_run:
     input:
-        bams=lambda wildcards: [input_long_read_bam({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
-        bais=lambda wildcards: [input_long_read_bai({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
+        bams=lambda wildcards: util.long_read_bam_for_tissue(wildcards.tissue),
+        bais=lambda wildcards: util.long_read_bai_for_tissue(wildcards.tissue),
         ref_fa="resources/reference.fa",
         annot_gtf=check_for_annotation_db,
     output:
