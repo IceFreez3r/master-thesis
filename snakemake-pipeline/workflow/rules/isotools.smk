@@ -5,10 +5,10 @@ rule isotools:
 
 rule isotools_create:
     input:
-        bams=lambda wildcards: [input_long_read_bam({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
-        bais=lambda wildcards: [input_long_read_bai({"sample": sample}) for sample in util.samples_for_tissue(wildcards.tissue)],
-        annotation_gff=config["annot_gff"],
-        annotation_tbi=config["annot_gff"] + ".tbi",
+        bams=lambda wildcards: util.long_read_bam_for_tissue(wildcards.tissue),
+        bais=lambda wildcards: util.long_read_bai_for_tissue(wildcards.tissue),
+        annotation_gff="resources/annotation_sorted.gtf.gz",
+        annotation_tbi="resources/annotation_sorted.gtf.gz.tbi",
         reference_fa="resources/reference.fa",
         reference_fai="resources/reference.fa.fai",
         sample_table=config["sample_table"],

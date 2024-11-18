@@ -14,16 +14,17 @@ annot_gff: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.an
 annot_fa: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.transcripts.fa.gz
 reference_fa: /project/hfa_work/ENCODE/data/gencode_human/version_46/GRCh38.p14.genome.fa
 
-# additional columns are allowed and ignored for all of these
-# tsv file with "sample ID", "group" and "file"
-sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue.tsv
-# tsv file with "sample ID" matching the IDs above and the path in the "file" column
-rnaseq_fofn:
-  fastq: /project/hfa_work/ENCODE/data/rna_seq/fastq/rnaseq_metadata_fastq.tsv
-  bam: /project/hfa_work/ENCODE/data/rna_seq/bam/rnaseq_metadata_bam.tsv
-  kallisto: /project/hfa_work/ENCODE/data/rna_seq/kallisto/rnaseq_metadata_kallisto.tsv
-# One .bed.gz file per tissue is expected, file names need to contain the tissue name as specified in the sample table
-CAGE_dir: /project/hfa_work/ENCODE/data/CAGE
+# * additional columns are allowed and ignored for all of these
+
+# tsv file with "sample ID", "group" and "file", file can either be a .fastq.gz or a .bam file
+# fastq: reads are mapped with minimap2
+# bam: .bai file is created next to it, if it doesn't exist yet
+sample_table: /project/hfa_work/ENCODE/ONT_TSS/sample_table.tsv
+# tsv file with "sample ID" matching the IDs above and the path in the "file" column, use null if not available
+rnaseq_fastq_fofn: null
+# tsv file with "group" matching groups from above and "file" with the path to the bed.gz file
+# samples from tissues without a matching CAGE file are ignored in the analysis
+CAGE_table: /project/hfa_work/ENCODE/ONT_TSS/CAGE_table.tsv
 # Download bed file from https://polyasite.unibas.ch/atlas#2
 PolyASitePeaks: /project/hfa_work/ENCODE/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 
@@ -77,8 +78,6 @@ test_run: False
 # Replace resources from above, when test_run is set to True
 test_config:
   sample_table: /project/hfa_work/ENCODE/data/reads/metadata_tissue_test.tsv
-  CAGE_dir: /project/hfa_work/ENCODE/data/CAGE_test
-  rnaseq_fofn:
-    fastq: /project/hfa_work/ENCODE/data/rna_seq/fastq_test/rnaseq_metadata_fastq_test.tsv
-    bam: /project/hfa_work/ENCODE/data/rna_seq/bam/rnaseq_metadata_bam.tsv
+  CAGE_table: /project/hfa_work/ENCODE/data/CAGE_test
+  rnaseq_fastq_fofn: /project/hfa_work/ENCODE/data/rna_seq/fastq_test/rnaseq_metadata_fastq_test.tsv
   annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.annotation.chr15.gtf.gz

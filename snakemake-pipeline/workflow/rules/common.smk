@@ -19,13 +19,16 @@ class Utility:
     def __init__(self, config):
         self.config = config
         self.sample_df = pd.read_csv(config['sample_table'], sep="\t")
-        self.rnaseq_fastq = pd.read_csv(config["rnaseq_fofn"]["fastq"], sep="\t")
-        self.rnaseq_bam = pd.read_csv(config["rnaseq_fofn"]["bam"], sep="\t")
+        self.use_short_reads = config["rnaseq_fastq_fofn"] is not None
+        self.cage_table = pd.read_csv(config["CAGE_table"], sep="\t")
 
         # Remove all samples from tissues without CAGE support
         self.sample_df = self.sample_df[self.sample_df["group"].isin(self.tissues)]
-        self.rnaseq_fastq = self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(self.samples)]
-        self.rnaseq_bam = self.rnaseq_bam[self.rnaseq_bam["sample ID"].isin(self.samples)]
+        if self.use_short_reads:
+            self.rnaseq_fastq = pd.read_csv(config["rnaseq_fastq_fofn"], sep="\t")
+            self.rnaseq_fastq = self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(self.samples)]
+        else:
+            self.rnaseq_fastq = pd.DataFrame(columns=["sample ID", "experiment ID", "file"])
 
     @property
     def samples(self):
@@ -39,8 +42,8 @@ class Utility:
     @property
     def tissues(self):
         tissues = self.sample_df["group"].unique().tolist()
-        CAGE_dir = self.config["CAGE_dir"]
-        tissues = [tissue for tissue in tissues if glob.glob(f"{CAGE_dir}/*{tissue}*.bed.gz")]
+        cage_tissues = self.cage_table["group"].unique().tolist()
+        tissues = [tissue for tissue in tissues if tissue in cage_tissues]
         return tissues
 
     @property
@@ -59,10 +62,6 @@ class Utility:
     def rnaseq_reads_for_sample(self, sample):
         return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"] == sample]["file"].values[0]
 
-    def rnaseq_alignment_for_sample(self, sample):
-        alignment = self.rnaseq_bam[self.rnaseq_bam["sample ID"] == sample]["file"].values[0]
-        return alignment
-
     def experiment_for_sample(self, sample):
         experiment = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         experiment = experiment.split("/")[-1].split(".")[0]
@@ -71,6 +70,22 @@ class Utility:
     def tissue_for_sample(self, sample):
         tissue = self.sample_df[self.sample_df["sample ID"] == sample]["group"].values[0]
         return tissue
+
+    def long_read_bam_for_sample(self, sample):
+        sample_file = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
+        if sample_file.endswith(".bam"):
+            return sample_file
+        if config["test_run"]:
+            return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam"
+        return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam"
+
+    def long_read_bai_for_sample(self, sample):
+        sample_file = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
+        if sample_file.endswith(".bam"):
+            return f"{sample_file}.bai"
+        if config["test_run"]:
+            return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam.bai"
+        return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam.bai"
 
 
     def samples_for_tissue(self, tissue):
@@ -88,9 +103,29 @@ class Utility:
         samples = self.samples_for_tissue(tissue)
         return self.rnaseq_fastq[self.rnaseq_fastq["sample ID"].isin(samples)]["file"].tolist()
 
-    def rnaseq_alignments_for_tissue(self, tissue):
+    def CAGE_file_for_tissue(self, tissue):
+        return self.cage_table[self.cage_table["group"] == tissue]["file"].values[0]
+
+    def long_read_bam_for_tissue(self, tissue):
+        sample_files = self.sample_df[self.sample_df["group"] == tissue]["file"]
+        if sample_files.iloc[0].endswith(".bam"):
+            return sample_files.tolist()
         samples = self.samples_for_tissue(tissue)
-        return self.rnaseq_bam[self.rnaseq_bam["sample ID"].isin(samples)]["file"].tolist()
+        if config["test_run"]:
+            return [f"resources/test/mapped_reads/{sample}_sorted_test.bam" for sample in samples]
+        return [f"resources/mapped_reads/{sample}_sorted.bam" for sample in samples]
+
+
+    def long_read_bai_for_tissue(self, tissue):
+        sample_files = self.sample_df[self.sample_df["group"] == tissue]["file"]
+        if sample_files.iloc[0].endswith(".bam"):
+            return [f"{sample_file}.bai" for sample_file in sample_files]
+        samples = self.samples_for_tissue(tissue)
+        if config["test_run"]:
+            return [f"resources/test/mapped_reads/{sample}_sorted_test.bam.bai" for sample in samples]
+        return [f"resources/mapped_reads/{sample}_sorted.bam.bai" for sample in samples]
+
+
 
 util = Utility(config)
 
@@ -228,15 +263,6 @@ rule preprocess_polyA_peaks:
     shell:
         "(gunzip -c {input.gz} | sed 's/^/chr/' - > {output.bed}) > {log} 2>&1"
 
-def input_long_read_bam(wildcards):
-    if config["test_run"]:
-        return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam"
-    return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam"
-
-def input_long_read_bai(wildcards):
-    if config["test_run"]:
-        return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam.bai"
-    return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam.bai"
 
 rule test_long_read_bam:
     input:

@@ -5,7 +5,7 @@ rule stringtie:
 
 rule stringtie_run:
     input:
-        bam=input_long_read_bam,
+        bam=lambda wildcards: util.long_read_bam_for_sample(sample),
         # bais=expand("resources/mapped_reads/{sample}_sorted.bam.bai", sample=util.samples),
         annot_gff="resources/annotation.gtf",
     output:

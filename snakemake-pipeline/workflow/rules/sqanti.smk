@@ -6,21 +6,24 @@ rule sqanti:
         expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues)
 
 
+def sqanti_short_read_input(wildcards):
+    if not util.use_short_reads:
+        return {}
+    return {
+        "sj_tabs": expand("results/star/{sample}/{sample}.SJ.out.tab", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        "sr_bams": expand("results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        "kallisto": expand("results/kallisto/{tool}/{sample}/abundance.tsv", tool=WORKING_TOOLS, sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+    }
+
 rule sqanti_qc:
     input:
+        unpack(sqanti_short_read_input),
         gtf = "results/{tool}/transcriptome/{tissue}.gtf",
         ref_gtf = "resources/annotation.gtf",
         cage = "resources/CAGE/{tissue}.bed",
         ref_fa = "resources/reference.fa",
         polyA_motifs = config["sqanti"]["polyA_motif_list"],
         polyA_peaks = "resources/PolyASitePeaks.bed",
-        kallisto_expression = lambda wildcards: expand("results/kallisto/{{tool}}/{sample}/abundance.tsv", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        # fastq=lambda wildcards: expand("resources/rnaseq/{sample}.fastq", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        # fastq_gz=lambda wildcards: util.rnaseq_reads_for_tissue(wildcards.tissue),
-        # rnaseq_fastq = "results/sqanti/rnaseq_fofn/{tissue}.fofn",
-        # rnaseq_fastq_gz = "results/sqanti/rnaseq_fofn/{tissue}_gz.fofn",
-        sj_tabs = lambda wildcards: expand("results/star/{sample}/{sample}.SJ.out.tab", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        SR_bams = lambda wildcards: expand("results/star/{{tissue}}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
     output:
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.pdf",
@@ -29,18 +32,18 @@ rule sqanti_qc:
         "results/sqanti/{tool}/qc/{tissue}/{tissue}_junctions.txt",
         "results/sqanti/{tool}/qc/{tissue}/{tissue}.params.txt",
         gtf="results/sqanti/{tool}/qc/{tissue}/{tissue}_corrected.gtf",
-        # rnaseq_fofn = "results/sqanti/rnaseq_fofn/{tool}/{tissue}.fofn"
     log:
         out = "logs/sqanti/{tool}/qc/{tissue}.log",
-        error = "logs/sqanti/{tool}/qc/{tissue}.error.log"
+        error = "logs/sqanti/{tool}/qc/{tissue}.error.log",
     params:
         sqanti_qc = os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
         output_dir = lambda wc, output: os.path.dirname(output.gtf),
         extra = "--report both --skipORF",
         extra_user = config["sqanti"]["extra"],
-        expression = lambda wildcards, input: ",".join(input.kallisto_expression),
-        sj_tabs = lambda wildcards, input: ",".join(input.sj_tabs),
-        SR_bam_dir = lambda wildcards, input: os.path.dirname(input.SR_bams[0]),
+        short_read_params = lambda wildcards, input: f"--coverage {','.join(input.sj_tabs)} --SR_bam {os.path.dirname(input.sr_bams[0])} --expression {','.join(input.kallisto)}" if util.use_short_reads else "",
+        # expression = lambda wildcards, input: ','.join(input.kallisto),
+        # sj_tabs = lambda wildcards, input: ','.join(input.sj_tabs),
+        # SR_bam_dir = lambda wildcards, input: os.path.dirname(input.sr_bams[0]),
     threads: 32
     resources:
         mem_mb=128 * 1024,
@@ -53,7 +56,7 @@ rule sqanti_qc:
         """
         (
             python {params.sqanti_qc} --CAGE_peak {input.cage}\
-                --coverage {params.sj_tabs} --SR_bam {params.SR_bam_dir} --expression {params.expression}\
+                {params.short_read_params}\
                 --polyA_motif_list {input.polyA_motifs} --polyA_peak {input.polyA_peaks}\
                 -d {params.output_dir}\
                 {params.extra} {params.extra_user} --cpus {threads}\

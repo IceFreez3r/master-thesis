@@ -4,9 +4,13 @@ rule CAGE:
 
 
 rule unzip_CAGE_bed:
+    input:
+        lambda wildcards: util.CAGE_file_for_tissue(wildcards.tissue)
     output:
         "resources/CAGE/{tissue}.bed"
-    params:
-        dir = config["CAGE_dir"]
+    log:
+        "logs/common/unzip_CAGE_bed/{tissue}.log"
+    resources:
+        disk_mb=lambda wildcards, input: input.size * 5
     shell:
-        "gunzip -c {params.dir}/*{wildcards.tissue}*.bed.gz > {output}"
+        "(gunzip -c {input} > {output}) > {log} 2>&1"
