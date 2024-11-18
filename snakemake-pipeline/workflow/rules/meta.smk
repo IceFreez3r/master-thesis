@@ -1,3 +1,6 @@
+localrules: dag
+
+
 rule dag:
     output:
         "results/meta/dag.pdf"

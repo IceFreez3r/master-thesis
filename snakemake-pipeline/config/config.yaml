@@ -2,17 +2,8 @@
 # ! with the exact name from the .yaml file. Snakemake will fail at runtime if the environment is not available!
 # ! See workflow/envs/manual/ for the corresponding environment files
 
-# GENCODE or Ensembl
-annot_source: GENCODE
-genome_name: GRCh38
-annot_name: gencode_v46
-sequencing_platform: Sequel II
-
-annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.annotation.gtf.gz
-# needs to be bgzf compressed and have a .tbi index
-annot_gff: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.annotation_sorted.gff3.gz
-annot_fa: /project/hfa_work/ENCODE/data/gencode_human/version_46/gencode.v46.transcripts.fa.gz
-reference_fa: /project/hfa_work/ENCODE/data/gencode_human/version_46/GRCh38.p14.genome.fa
+annot_gtf: /project/hfa_work/ENCODE/data/gencode_human/version_45/gencode.v45.annotation.gtf.gz
+reference_fa: /project/hfa_work/ENCODE/data/gencode_human/version_45/GRCh38.p14.genome.fa
 
 # * additional columns are allowed and ignored for all of these
 
@@ -37,11 +28,7 @@ flair:
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
-tools: ["flair", "isoquant", "isotools_v0", "isotools_v1", "isotools_v2", "isotools_v3", "stringtie"]
-# Used commits for reference:
-# v0: f2c1237c3c3458d07ed4f7637ca3a05c14581f27
-# v1: e416497366918ceba32751cacadf61be716f18ed
-# v2: 516081b0d56dbcde9c4b82bce0f898900ab8549c
+tools: ["isotools_v0", "isotools_v2"]
 
 isotools:
   query: "BALANCED"

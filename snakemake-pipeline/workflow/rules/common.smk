@@ -215,7 +215,19 @@ rule unzip_annotation:
         "(gunzip -c {input.gz} > {output.gtf}) > {log} 2>&1"
 
 
-rule index_reference:
+rule sort_annotation:
+    input:
+        "resources/annotation.gtf"
+    output:
+        "resources/annotation_sorted.gtf.gz",
+    log:
+        "logs/common/sort_annotation.log"
+    resources:
+        disk_mb = lambda wildcards, input: input.size_mb * 5
+    shell:
+        '(grep -v "^#" {input} | sort -k1,1 -k4,4n | bgzip -c > {output[0]}) > {log} 2>&1'
+
+rule index_reference_fa:
     input:
         "resources/reference.fa"
     output:

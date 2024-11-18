@@ -11,6 +11,6 @@ rule unzip_CAGE_bed:
     log:
         "logs/common/unzip_CAGE_bed/{tissue}.log"
     resources:
-        disk_mb=lambda wildcards, input: input.size * 5
+        disk_mb=lambda wildcards, input: input.size_mb * 5
     shell:
         "(gunzip -c {input} > {output}) > {log} 2>&1"
