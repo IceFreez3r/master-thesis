@@ -9,7 +9,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO, file
 logger = logging.getLogger("isotools")
 logger.info(f"This is isotools version {isotools_version}")
 
-genome_path = snakemake.input.reference_fa
+genome_path = snakemake.input.ref_fa
 annotation_gff = snakemake.input.annotation_gff
 metadata_path = snakemake.input.sample_table
 alignments = snakemake.input.bams

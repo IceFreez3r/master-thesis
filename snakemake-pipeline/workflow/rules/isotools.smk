@@ -9,8 +9,8 @@ rule isotools_create:
         bais=lambda wildcards: util.long_read_bai_for_tissue(wildcards.tissue),
         annotation_gff="resources/annotation_sorted.gtf.gz",
         annotation_tbi="resources/annotation_sorted.gtf.gz.tbi",
-        reference_fa="resources/reference.fa",
-        reference_fai="resources/reference.fa.fai",
+        ref_fa="resources/reference.fa",
+        ref_fai="resources/reference.fa.fai",
         sample_table=config["sample_table"],
     output:
         gtf="results/isotools{conda}/transcriptome/{tissue}.gtf",

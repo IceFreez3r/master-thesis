@@ -186,20 +186,16 @@ encode = ENCODE_data()
 def shadow_large_rules():
     return "copy-minimal" if config["shadow_large_rules"] else None
 
-rule preprocess_reference_fa:
+rule copy_reference_fa:
     """Removes scaffolds from the reference"""
     input:
         config["reference_fa"],
     output:
         "resources/reference.fa",
-    run:
-        with open(input[0]) as f, open(output[0], "w") as out:
-            copy = True
-            for line in f:
-                if line.startswith(">"):
-                    copy = line.startswith(">chr")
-                if copy:
-                    out.write(line)
+    log:
+        "logs/common/copy_reference_fa.log"
+    shell:
+        "cp {input} {output} > {log} 2>&1"
 
 
 rule unzip_annotation:
