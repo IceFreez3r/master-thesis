@@ -24,12 +24,22 @@ include: "rules/star.smk"
 include: "rules/stringtie.smk"
 
 
+def upset_plots(wildcards):
+    # Only create upset plots if more than one tool is used
+    # Only keep first isotools version
+    first_isotools = [tool for tool in WORKING_TOOLS if "isotools" in tool][0]
+    filtered_tools = [tool for tool in WORKING_TOOLS if not "isotools" in tool] + [first_isotools]
+    if len(filtered_tools) > 1:
+        return "results/plots/upset/all/mean.png", "results/plots/upset/filtered/mean.png"
+    else:
+        return []
+
+
 rule all:
     input:
-        expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz", tool=WORKING_TOOLS, tissue=util.tissues),
-        expand("results/{tool}/transcriptome/{tissue}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS, tissue=util.tissues),
-        expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues),
-        "results/plots/upset/all/mean.png",
-        "results/plots/upset/filtered/mean.png",
-        expand("results/plots/sqanti/{version}/transcript_counts.png", version=["isotools", "_v0", "_v2"]),
+        expand("results/{tool}/transcriptome/{group}_sorted.gtf.gz", tool=WORKING_TOOLS, group=util.tissues),
+        expand("results/{tool}/transcriptome/{group}_sorted.gtf.gz.tbi", tool=WORKING_TOOLS, group=util.tissues),
+        expand("results/sqanti/{tool}/qc/{group}/{group}_SQANTI3_report.html", tool=WORKING_TOOLS, group=util.tissues),
+        upset_plots,
+        expand("results/plots/sqanti/{group}/transcript_counts.png", group=config["sqanti"]["plot_groups"]),
         "results/meta/dag.pdf",

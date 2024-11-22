@@ -54,6 +54,15 @@ sqanti:
   polyA_motif_list: "/path/to/code/SQANTI3/data/polyA_motifs/mouse_and_human.polyA_motif.txt"
   # see https://github.com/ConesaLab/SQANTI3/wiki/Running-SQANTI3-Quality-Control#arguments-and-parameters-in-sqanti3-qc for options
   extra: "--ratio_TSS_metric mean"
+  plot_groups:
+    all:
+      tools: ["isotools_v0", "isotools_v2"]
+      groups: all
+    wtc11:
+      tools: all
+      tool_names: ["IsoTools v0", "IsoTools v2"]
+      groups: ["CapTrap_ONT/wtc11","CapTrap_PacBio/wtc11","cDNA_ONT/wtc11","cDNA_PacBio/wtc11","dRNA_ONT/wtc11","R2C2_ONT/wtc11"]
+      group_names: ["CapTrap_ONT","CapTrap_PacBio","cDNA_ONT","cDNA_PacBio","dRNA_ONT","R2C2_ONT"]
   # Whether to include titles in plots
   plot_titles: False
 
