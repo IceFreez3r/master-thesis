@@ -12,23 +12,24 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO, file
 logger = logging.getLogger("plots")
 
 
-TISSUES = snakemake.params['tissues']
 TOOLS = snakemake.params['tools']
 TOOLNAMES = snakemake.params['toolnames']
+GROUPS = snakemake.params['groups']
+GROUP_NAMES = snakemake.params['group_names']
 CLASSIFATIONS = snakemake.params['classifications']
 OUTPUT_DIR = snakemake.params['output_dir']
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 PLOT_TITELS = snakemake.params['plot_titles']
 
-def get_classification(tissue, tool) -> pd.DataFrame:
-    return pd.read_csv(CLASSIFATIONS[tool][tissue], sep='\t')
+def get_classification(group, tool) -> pd.DataFrame:
+    return pd.read_csv(CLASSIFATIONS[tool][group], sep='\t')
 
 logger.info('Importing classifications')
 all = pd.DataFrame()
-for tissue in TISSUES:
+for (group, group_name) in zip(GROUPS, GROUP_NAMES):
     for (tool, name) in zip(TOOLS, TOOLNAMES):
-        df = get_classification(tissue, tool)
-        df.insert(0, 'tissue', tissue)
+        df = get_classification(group, tool)
+        df.insert(0, 'group', group_name)
         df.insert(1, 'tool', name)
         # Rename and make boolean
         df['category'] = df['structural_category']
@@ -55,18 +56,18 @@ all['category'] = all['category'].replace({
 logger.info('Classifications imported')
 
 # # Transcript Counts
-# Barplot for the number of isoforms for each tool and tissue
-agg_all = all.groupby(['tool', 'tissue']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
+# Barplot for the number of isoforms for each tool and group
+agg_all = all.groupby(['tool', 'group']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
 agg_all['count'] = agg_all['isoform']
 
-agg_by_category = all.groupby(['tool', 'tissue', 'category']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
+agg_by_category = all.groupby(['tool', 'group', 'category']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
 agg_by_category['count'] = agg_by_category['isoform']
 
-agg_by_subcategory = all.groupby(['tool', 'tissue', 'category', 'subcategory']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
+agg_by_subcategory = all.groupby(['tool', 'group', 'category', 'subcategory']).agg({'TSS ratio': 'sum', 'CAGE support': 'sum', 'polyA site': 'sum', 'polyA motif': 'sum', 'start both': 'sum', 'end both': 'sum', 'isoform': 'count'}).reset_index()
 agg_by_subcategory['count'] = agg_by_subcategory['isoform']
 
-ax1 = sns.barplot(x='tool', y='count', hue='tissue', data=agg_all, palette='viridis')
-# ax1.set_title('Number of isoforms by tool and tissue')
+ax1 = sns.barplot(x='tool', y='count', hue='group', data=agg_all, palette='viridis')
+# ax1.set_title('Number of isoforms by tool and group')
 plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts.png'))
 plt.close()
 
@@ -105,7 +106,7 @@ plt.close()
 
 # ## Subcategory counts
 # Counts per subcategory
-df = agg_by_subcategory.groupby(['tool', 'tissue', 'subcategory']).agg({'count': 'sum'}).reset_index()
+df = agg_by_subcategory.groupby(['tool', 'group', 'subcategory']).agg({'count': 'sum'}).reset_index()
 # ax1 = sns.barplot(x='tool', y='count', hue='subcategory', data=df, palette='viridis')
 # no_stringtie = ~df['tool'].isin(['stringtie'])
 # ax1 = sns.barplot(x='tool', y='count', hue='subcategory', data=df[no_stringtie], palette='viridis')
@@ -157,15 +158,15 @@ def heatmap(df: pd.DataFrame, column, export_name, header_suffix='', **params):
     df.loc[:,'annotation'] = df['relative_metric'].map('{:,.1%}'.format) + \
                             '\n(' + df[column].astype(str) + '/' + df['count'].astype(str) + ')'
     # Reshape the data using pivot
-    heatmap_data = df.pivot(index='tool', columns='tissue', values='relative_metric')
-    # get max value for each tissue
+    heatmap_data = df.pivot(index='tool', columns='group', values='relative_metric')
+    # get max value for each group
     max_values = heatmap_data.max(axis=0)
 
     # Annotate each cell with the numeric value and the count
-    annot = df.pivot(index='tool', columns='tissue', values='annotation')
+    annot = df.pivot(index='tool', columns='group', values='annotation')
 
     # Plot the heatmap
-    plt.figure(figsize=(12, 1 + len(df['tool'].unique())))
+    plt.figure(figsize=(3 * heatmap_data.shape[1], 1 + heatmap_data.shape[0]))
     ax = sns.heatmap(heatmap_data, vmin=0, vmax=1, annot=annot, fmt='', linewidths=0.5, **params)
     # Make max values bold
     for i in range(heatmap_data.shape[0]):
@@ -175,7 +176,7 @@ def heatmap(df: pd.DataFrame, column, export_name, header_suffix='', **params):
 
     if PLOT_TITELS:
         plt.title(f'Heatmap of {column}{header_suffix}')
-    plt.xlabel('Tissue')
+    plt.xlabel('group')
     plt.ylabel('Tool')
     plt.savefig(os.path.join(OUTPUT_DIR, f'{export_name}.png'), bbox_inches='tight')
     plt.close()
@@ -190,7 +191,7 @@ heatmap(agg_all, 'polyA motif', export_name='PolyA_motif', cmap='magma_r')
 
 # # By Category
 
-non_fsm_df = agg_by_category.loc[agg_by_category['category'] != 'FSM'].groupby(['tissue', 'tool']).sum().reset_index()
+non_fsm_df = agg_by_category.loc[agg_by_category['category'] != 'FSM'].groupby(['group', 'tool']).sum().reset_index()
 
 # ## Starts
 
@@ -255,7 +256,7 @@ logger.info('Category heatmaps plotted')
 
 # ## Only Monoexons
 
-mono_exons = agg_by_subcategory.loc[agg_by_subcategory['subcategory'] == 'mono-exon'].groupby(['tissue', 'tool']).sum().reset_index()
+mono_exons = agg_by_subcategory.loc[agg_by_subcategory['subcategory'] == 'mono-exon'].groupby(['group', 'tool']).sum().reset_index()
 heatmap(mono_exons, 'CAGE support', header_suffix=' for Monoexons',
         export_name='CAGE_support_monoexons', cmap='YlGnBu')
 # heatmap(mono_exons, 'TSS ratio', header_suffix=' for Monoexons', cmap='YlGnBu')
@@ -263,7 +264,7 @@ heatmap(mono_exons, 'CAGE support', header_suffix=' for Monoexons',
 
 # ## ISM w/o Monoexons
 
-no_mono_ISM = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['category'] == 'ISM')].groupby(['tissue', 'tool']).sum().reset_index()
+no_mono_ISM = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index()
 heatmap(no_mono_ISM, 'CAGE support', header_suffix=' for ISM w/o Monoexons',
         export_name='CAGE_support_ISM_no_monoexons', cmap='YlGnBu')
 # heatmap(no_mono_ISM, 'TSS ratio', header_suffix=' for ISM w/o Monoexons', cmap='YlGnBu')
@@ -271,7 +272,7 @@ heatmap(no_mono_ISM, 'CAGE support', header_suffix=' for ISM w/o Monoexons',
 
 # # All w/o Monoexons
 
-no_mono_all = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon')].groupby(['tissue', 'tool']).sum().reset_index()
+no_mono_all = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon')].groupby(['group', 'tool']).sum().reset_index()
 heatmap(no_mono_all, 'CAGE support', header_suffix=' w/o Monoexons',
         export_name='CAGE_support_no_monoexons', cmap='YlGnBu')
 # heatmap(no_mono_all, 'TSS ratio', header_suffix=' w/o Monoexons', cmap='YlGnBu')
@@ -279,27 +280,27 @@ heatmap(no_mono_all, 'CAGE support', header_suffix=' w/o Monoexons',
 
 # # No monoexons and 3' fragments
 
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment')].groupby(['tissue', 'tool']).sum().reset_index(),
+heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment')].groupby(['group', 'tool']).sum().reset_index(),
         'CAGE support',
         header_suffix=' w/o Monoexons and 3\' Fragments',
         export_name='CAGE_support_no_monoexons_no_3fragment',
         cmap='YlGnBu')
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'FSM')].groupby(['tissue', 'tool']).sum().reset_index(),
+heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'FSM')].groupby(['group', 'tool']).sum().reset_index(),
         'CAGE support',
         header_suffix=' w/o Monoexons and 3\' Fragments',
         export_name='CAGE_support_FSM_no_monoexons_no_3fragment',
         cmap='YlGnBu')
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'ISM')].groupby(['tissue', 'tool']).sum().reset_index(),
+heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index(),
         'CAGE support',
         header_suffix=' w/o Monoexons and 3\' Fragments',
         export_name='CAGE_support_ISM_no_monoexons_no_3fragment',
         cmap='YlGnBu')
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NIC')].groupby(['tissue', 'tool']).sum().reset_index(),
+heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NIC')].groupby(['group', 'tool']).sum().reset_index(),
         'CAGE support',
         header_suffix=' w/o Monoexons and 3\' Fragments',
         export_name='CAGE_support_NIC_no_monoexons_no_3fragment',
         cmap='YlGnBu')
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NNC')].groupby(['tissue', 'tool']).sum().reset_index(),
+heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NNC')].groupby(['group', 'tool']).sum().reset_index(),
         'CAGE support',
         header_suffix=' w/o Monoexons and 3\' Fragments',
         export_name='CAGE_support_NNC_no_monoexons_no_3fragment',

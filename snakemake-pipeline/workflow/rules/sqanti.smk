@@ -3,38 +3,38 @@ import os
 
 rule sqanti:
     input:
-        expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html", tool=WORKING_TOOLS, tissue=util.tissues)
+        expand("results/sqanti/{tool}/qc/{group}/{group}_SQANTI3_report.html", tool=WORKING_TOOLS, group=util.tissues)
 
 
 def sqanti_short_read_input(wildcards):
     if not util.use_short_reads:
         return {}
     return {
-        "sj_tabs": expand("results/star/{sample}/{sample}.SJ.out.tab", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        "sr_bams": expand("results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
-        "kallisto": expand("results/kallisto/{tool}/{sample}/abundance.tsv", tool=WORKING_TOOLS, sample=util.rnaseq_samples_for_tissue(wildcards.tissue)),
+        "sj_tabs": expand("results/star/{sample}/{sample}.SJ.out.tab", sample=util.rnaseq_samples_for_tissue(wildcards.group)),
+        "sr_bams": expand("results/star/{sample}/{sample}.Aligned.sortedByCoord.out.bam", sample=util.rnaseq_samples_for_tissue(wildcards.group)),
+        "kallisto": expand("results/kallisto/{tool}/{sample}/abundance.tsv", tool=WORKING_TOOLS, sample=util.rnaseq_samples_for_tissue(wildcards.group)),
     }
 
 rule sqanti_qc:
     input:
         unpack(sqanti_short_read_input),
-        gtf = "results/{tool}/transcriptome/{tissue}.gtf",
+        gtf = "results/{tool}/transcriptome/{group}.gtf",
         ref_gtf = "resources/annotation.gtf",
-        cage = "resources/CAGE/{tissue}.bed",
+        cage = "resources/CAGE/{group}.bed",
         ref_fa = "resources/reference.fa",
         polyA_motifs = config["sqanti"]["polyA_motif_list"],
         polyA_peaks = "resources/PolyASitePeaks.bed",
     output:
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.html",
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}_SQANTI3_report.pdf",
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt",
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}_corrected.fasta",
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}_junctions.txt",
-        "results/sqanti/{tool}/qc/{tissue}/{tissue}.params.txt",
-        gtf="results/sqanti/{tool}/qc/{tissue}/{tissue}_corrected.gtf",
+        "results/sqanti/{tool}/qc/{group}/{group}_SQANTI3_report.html",
+        "results/sqanti/{tool}/qc/{group}/{group}_SQANTI3_report.pdf",
+        "results/sqanti/{tool}/qc/{group}/{group}_classification.txt",
+        "results/sqanti/{tool}/qc/{group}/{group}_corrected.fasta",
+        "results/sqanti/{tool}/qc/{group}/{group}_junctions.txt",
+        "results/sqanti/{tool}/qc/{group}/{group}.params.txt",
+        gtf="results/sqanti/{tool}/qc/{group}/{group}_corrected.gtf",
     log:
-        out = "logs/sqanti/{tool}/qc/{tissue}.log",
-        error = "logs/sqanti/{tool}/qc/{tissue}.error.log",
+        out = "logs/sqanti/{tool}/qc/{group}.log",
+        error = "logs/sqanti/{tool}/qc/{group}.error.log",
     params:
         sqanti_qc = os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
         output_dir = lambda wc, output: os.path.dirname(output.gtf),
@@ -61,65 +61,84 @@ rule sqanti_qc:
                 -d {params.output_dir}\
                 {params.extra} {params.extra_user} --cpus {threads}\
                 {input.gtf} {input.ref_gtf} {input.ref_fa}
-            df -h $MXQ_JOB_TMPDIR
         ) > {log.out} 2> {log.error}
         """
 
-def get_sqanti_tools(wildcards):
-    if wildcards["version"] == "isotools":
-        return [tool for tool in WORKING_TOOLS if "isotools" in tool]
-    else:
-        return [tool for tool in WORKING_TOOLS if not "isotools" in tool or "isotools" + wildcards["version"] == tool]
+class SQANTI_plots:
+    def __init__(self):
+        self.plot_groups = config["sqanti"]["plot_groups"]
+        # Replace "all" with all tools
+        for version, groups in self.plot_groups.items():
+            if groups["tools"] == "all":
+                self.plot_groups[version]["tools"] = WORKING_TOOLS
+            if not "toolnames" in groups:
+                self.plot_groups[version]["toolnames"] = groups["tools"]
+            assert len(self.plot_groups[version]["tools"]) == len(self.plot_groups[version]["toolnames"]), f"Number of tools and toolnames must match for {version}"
+            if groups["groups"] == "all":
+                self.plot_groups[version]["groups"] = util.tissues
+            if not "group_names" in groups:
+                self.plot_groups[version]["group_names"] = groups["groups"]
+            assert len(self.plot_groups[version]["groups"]) == len(self.plot_groups[version]["group_names"]), f"Number of groups and group_names must match for {version}"
+
+    def __getitem__(self, version):
+        return self.plot_groups[version]
+
+
+sqanti_plots = SQANTI_plots()
+
 
 rule sqanti_comparison_plots:
     input:
-        classifications = expand("results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt", tool=get_sqanti_tools, tissue=util.tissues),
+        classifications = lambda wildcards: expand("results/sqanti/{tool}/qc/{group}/{group}_classification.txt",
+                                                   tool=sqanti_plots[wildcards.plot_group]["tools"],
+                                                   group=sqanti_plots[wildcards.plot_group]["groups"]),
     output:
-        "results/plots/sqanti/{version}/transcript_counts.png",
-        "results/plots/sqanti/{version}/transcript_counts_subcategory.png",
-        "results/plots/sqanti/{version}/transcript_counts_subcategory_ISM.png",
-        "results/plots/sqanti/{version}/CAGE_support.png",
-        "results/plots/sqanti/{version}/TSS_ratio.png",
-        "results/plots/sqanti/{version}/PolyA_site.png",
-        "results/plots/sqanti/{version}/PolyA_motif.png",
-        "results/plots/sqanti/{version}/CAGE_support_FSM.png",
-        "results/plots/sqanti/{version}/CAGE_support_ISM.png",
-        "results/plots/sqanti/{version}/CAGE_support_NIC.png",
-        "results/plots/sqanti/{version}/CAGE_support_NNC.png",
-        "results/plots/sqanti/{version}/CAGE_support_non_FSM.png",
-        "results/plots/sqanti/{version}/polyA_site_FSM.png",
-        "results/plots/sqanti/{version}/polyA_site_ISM.png",
-        "results/plots/sqanti/{version}/polyA_site_NIC.png",
-        "results/plots/sqanti/{version}/polyA_site_NNC.png",
-        "results/plots/sqanti/{version}/polyA_motif_FSM.png",
-        "results/plots/sqanti/{version}/polyA_motif_ISM.png",
-        "results/plots/sqanti/{version}/polyA_motif_NIC.png",
-        "results/plots/sqanti/{version}/polyA_motif_NNC.png",
-        "results/plots/sqanti/{version}/CAGE_support_monoexons.png",
-        "results/plots/sqanti/{version}/CAGE_support_ISM_no_monoexons.png",
-        "results/plots/sqanti/{version}/CAGE_support_no_monoexons.png",
-        "results/plots/sqanti/{version}/CAGE_support_no_monoexons_no_3fragment.png",
-        "results/plots/sqanti/{version}/CAGE_support_FSM_no_monoexons_no_3fragment.png",
-        "results/plots/sqanti/{version}/CAGE_support_ISM_no_monoexons_no_3fragment.png",
-        "results/plots/sqanti/{version}/CAGE_support_NIC_no_monoexons_no_3fragment.png",
-        "results/plots/sqanti/{version}/CAGE_support_NNC_no_monoexons_no_3fragment.png",
-        stats = "results/plots/sqanti/{version}/stats.tsv",
+        "results/plots/sqanti/{plot_group}/transcript_counts.png",
+        "results/plots/sqanti/{plot_group}/transcript_counts_subcategory.png",
+        "results/plots/sqanti/{plot_group}/transcript_counts_subcategory_ISM.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support.png",
+        "results/plots/sqanti/{plot_group}/TSS_ratio.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_FSM.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_ISM.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_NIC.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_NNC.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_non_FSM.png",
+        "results/plots/sqanti/{plot_group}/polyA_site_FSM.png",
+        "results/plots/sqanti/{plot_group}/polyA_site_ISM.png",
+        "results/plots/sqanti/{plot_group}/polyA_site_NIC.png",
+        "results/plots/sqanti/{plot_group}/polyA_site_NNC.png",
+        "results/plots/sqanti/{plot_group}/polyA_motif_FSM.png",
+        "results/plots/sqanti/{plot_group}/polyA_motif_ISM.png",
+        "results/plots/sqanti/{plot_group}/polyA_motif_NIC.png",
+        "results/plots/sqanti/{plot_group}/polyA_motif_NNC.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_monoexons.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_ISM_no_monoexons.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_no_monoexons.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_FSM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_ISM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_NIC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/CAGE_support_NNC_no_monoexons_no_3fragment.png",
+        stats = "results/plots/sqanti/{plot_group}/stats.tsv",
     log:
-        "logs/sqanti/comparison/{version}.log",
+        "logs/sqanti/comparison/{plot_group}.log",
     conda:
         "../envs/seaborn.yaml"
     params:
-        tissues = util.tissues,
-        tools = lambda wildcards: get_sqanti_tools(wildcards),
-        toolnames = lambda wildcards: [tool.split("_")[0] for tool in get_sqanti_tools(wildcards)] if wildcards["version"] != "isotools" else get_sqanti_tools(wildcards),
+        tools = lambda wildcards: sqanti_plots[wildcards.plot_group]["tools"],
+        toolnames = lambda wildcards: sqanti_plots[wildcards.plot_group]["toolnames"],
+        groups = lambda wildcards: sqanti_plots[wildcards.plot_group]["groups"],
+        group_names = lambda wildcards: sqanti_plots[wildcards.plot_group]["group_names"],
         classifications = lambda wildcards: {
             tool: {
-                tissue: f"results/sqanti/{tool}/qc/{tissue}/{tissue}_classification.txt"
-                for tissue in util.tissues
+                group: f"results/sqanti/{tool}/qc/{group}/{group}_classification.txt"
+                for group in sqanti_plots[wildcards.plot_group]["groups"]
             }
-            for tool in get_sqanti_tools(wildcards)
+            for tool in sqanti_plots[wildcards.plot_group]["tools"]
         },
-        output_dir = "results/plots/sqanti/{version}",
+        output_dir = "results/plots/sqanti/{plot_group}",
         plot_titles = config["sqanti"]["plot_titles"],
     script:
         "../scripts/sqanti/sqanti_comparison_plots.py"
