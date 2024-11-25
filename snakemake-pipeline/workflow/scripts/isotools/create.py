@@ -19,7 +19,9 @@ samples = snakemake.params.samples
 query = snakemake.params.query
 metadata = pd.read_csv(metadata_path, sep="\t")
 
-unify_ends = snakemake.params.get("unify_ends")
+extra = snakemake.params.extra
+extra_add_sample_from_bam = extra.get("add_sample_from_bam", {})
+extra_add_qc_metrics = extra.get("add_qc_metrics", {})
 
 logger.info(f"Creating isotools object for tissue {tissue} from reference")
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)
@@ -30,10 +32,10 @@ for sample, alignment in zip(samples, alignments):
         continue
     group = metadata[metadata["sample ID"] == sample]["group"].values[0]
     logger.info(f"Adding sample {sample} from {alignment} to isotools object")
-    isoseq.add_sample_from_bam(fn=alignment, sample_name=sample, group=group, progress_bar=False)
+    isoseq.add_sample_from_bam(fn=alignment, sample_name=sample, group=group, progress_bar=False, **extra_add_sample_from_bam)
 
 logger.info("Computing qc metrics. Unifying ends: {unify_ends}")
-isoseq.add_qc_metrics(genome_path, progress_bar=False, unify_ends=unify_ends)
+isoseq.add_qc_metrics(genome_path, progress_bar=False, **extra_add_qc_metrics)
 
 logger.info("Exporting isotools to GTF and pickle")
 isoseq.write_gtf(snakemake.output.gtf, gzip=False, query=query)

@@ -1,7 +1,4 @@
-# ! Some of the tools used by this pipeline have poor conda support and require manual creation of the environment
-# ! with the exact name from the .yaml file. Snakemake will fail at runtime if the environment is not available!
-# ! See workflow/envs/manual/ for the corresponding environment files
-
+### INPUT FILES ###
 annot_gtf: /path/to/data/gencode_human/version_45/gencode.v45.annotation.gtf.gz
 reference_fa: /path/to/data/gencode_human/version_45/GRCh38.p14.genome.fa
 
@@ -19,26 +16,47 @@ CAGE_table: /path/to/ONT_TSS/CAGE_table.tsv
 # Download bed file from https://polyasite.unibas.ch/atlas#2
 PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 
-flair:
-  # FLAIRs memory consumption drastically increase for .bed files over 1GB
-  # If the .bed file is larger than this, it will be split by chromosome
-  # Using 1.05e9 and not just 1e9 because lung is just ever so slightly over 1GB
-  bed_split_size: 1.05e9
-
+### TRANSCRIPTOME TOOL SETTINGS ###
+# ! Some of the tools used by this pipeline have poor conda support and require manual creation of the environment
+# ! with the exact name from the .yaml file. Snakemake will fail at runtime if the environment is not available!
+# ! See workflow/envs/manual/ for the corresponding environment files
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
 tools: ["isotools_v0", "isotools_v2"]
 
+flair:
+  # FLAIRs memory consumption drastically increase for .bed files over 1GB
+  # If the .bed file is larger than this, it will be split by chromosome
+  bed_split_size: 1e9
+  # Extra command line options for FLAIR, see https://flair.readthedocs.io/en/stable/modules.html
+  extra:
+    correct: ""
+    collapse: ""
+
+isoquant:
+  # Extra command line options for IsoQuant, see https://ablab.github.io/IsoQuant/cmd.html
+  extra: "--data_type pacbio_ccs --complete_gene_db"
+
 isotools:
   query: "BALANCED"
-  unify_ends: {}
-  #   isotools_v4: False
+  # Extra parameters for each IsoTools version for each function call
+  # Supported are parameters for add_sample_from_bam and add_qc_metrics
+  extra:
+    isotools_v0:
+      add_qc_metrics: {correct_tss: False}
+    isotools_v2: {}
 
 stringtie:
-  # Stringtie needs manual building with make, the path to the binary is needed
+  # ! Stringtie needs manual building with make
+  # provide the path to the binary afterwards
   path: /path/to/code/stringtie/stringtie
+  # Extra command line options for Stringtie, see https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual
+  extra:
+    run: ""
+    merge: ""
 
+### SQANTI SETTINGS ###
 star:
   # Extra options for STAR
   index:
@@ -66,6 +84,7 @@ sqanti:
   # Whether to include titles in plots
   plot_titles: False
 
+### MISCELLANEOUS ###
 # cluster couldn't find conda
 path_to_conda: /home/lankenau/miniforge-pypy3/bin
 

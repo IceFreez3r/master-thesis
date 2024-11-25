@@ -54,6 +54,7 @@ rule flair_correct:
         "logs/flair/correct/{tissue}.log",
     params:
         output_prefix=lambda wc, output: output["correct"].replace("_all_corrected.bed", ""),
+        extra=config["flair"]["extra"]["correct"],
     threads: 8
     resources:
         mem_mb=16 * 1024,
@@ -61,7 +62,10 @@ rule flair_correct:
     conda:
         "../envs/flair.yaml"
     shell:
-        "flair correct --query {input.bed12} --genome {input.ref_fa} --gtf {input.gtf} --threads {threads} --output {params.output_prefix} > {log} 2>&1"
+        """
+        flair correct --query {input.bed12} --genome {input.ref_fa} --gtf {input.gtf}\
+              --threads {threads} --output {params.output_prefix} {params.extra} > {log} 2>&1
+        """
 
 
 rule flair_collapse:
@@ -71,14 +75,13 @@ rule flair_collapse:
         reads=lambda wildcards: util.longreads_for_tissue(wildcards.tissue),
         ref_fa="resources/reference.fa",
     output:
-        # "results/flair/collapse/{tissue}.isoforms.bed",
         gtf = temp("results/flair/collapse/{tissue}.isoforms.gtf"),
-        # "results/flair/collapse/{tissue}.isoforms.fa",
     log:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
         output_prefix=lambda wc, output: output.gtf.replace(f".isoforms.gtf", ""),
         bed_split_size=config["flair"]["bed_split_size"],
+        extra=config["flair"]["extra"]["collapse"],
     threads: 16
     resources:
         mem_mb=64 * 1024,
@@ -89,6 +92,7 @@ rule flair_collapse:
         "../scripts/flair/collapse.py"
 
 
+# Fix 0-length/negative length exons, required for indexing
 rule flair_fix:
     input:
         gtf = "results/flair/collapse/{tissue}.isoforms.gtf",
