@@ -83,6 +83,7 @@ sqanti:
       group_names: ["CapTrap_ONT","CapTrap_PacBio","cDNA_ONT","cDNA_PacBio","dRNA_ONT","R2C2_ONT"]
   # Whether to include titles in plots
   plot_titles: False
+  dpi: 300
 
 ### MISCELLANEOUS ###
 # cluster couldn't find conda

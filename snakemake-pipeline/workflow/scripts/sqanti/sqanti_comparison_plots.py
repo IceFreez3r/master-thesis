@@ -20,6 +20,7 @@ CLASSIFATIONS = snakemake.params['classifications']
 OUTPUT_DIR = snakemake.params['output_dir']
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 PLOT_TITELS = snakemake.params['plot_titles']
+DPI = snakemake.params['dpi']
 
 def get_classification(group, tool) -> pd.DataFrame:
     return pd.read_csv(CLASSIFATIONS[tool][group], sep='\t')
@@ -68,7 +69,7 @@ agg_by_subcategory['count'] = agg_by_subcategory['isoform']
 
 ax1 = sns.barplot(x='tool', y='count', hue='group', data=agg_all, palette='viridis')
 # ax1.set_title('Number of isoforms by tool and group')
-plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts.png'))
+plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts.png'), dpi=DPI)
 plt.close()
 
 # # Category Counts
@@ -101,7 +102,7 @@ kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
 ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
 ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 
-plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_category.png'))
+plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_category.png'), dpi=DPI)
 plt.close()
 
 # ## Subcategory counts
@@ -138,7 +139,7 @@ ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 # Move legend outside the plot
 ax2.legend(loc='upper left', bbox_to_anchor=(1, 1.3), ncol=1)
 
-plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_subcategory.png'), bbox_inches='tight')
+plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_subcategory.png'), bbox_inches='tight', dpi=DPI)
 plt.close()
 
 # ## ISM subcategory counts
@@ -146,7 +147,7 @@ plt.close()
 df = agg_by_subcategory.loc[agg_by_subcategory['category'] == 'ISM']
 # Counts per subcategory
 ax1 = sns.barplot(x='tool', y='count', hue='subcategory', data=df, palette='viridis')
-plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_subcategory_ISM.png'))
+plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_subcategory_ISM.png'), dpi=DPI)
 plt.close()
 
 logger.info('Category counts plotted')
@@ -178,7 +179,7 @@ def heatmap(df: pd.DataFrame, column, export_name, header_suffix='', **params):
         plt.title(f'Heatmap of {column}{header_suffix}')
     plt.xlabel('group')
     plt.ylabel('Tool')
-    plt.savefig(os.path.join(OUTPUT_DIR, f'{export_name}.png'), bbox_inches='tight')
+    plt.savefig(os.path.join(OUTPUT_DIR, f'{export_name}.png'), bbox_inches='tight', dpi=DPI)
     plt.close()
 
 heatmap(agg_all, 'CAGE support', export_name='CAGE_support', cmap='YlGnBu')

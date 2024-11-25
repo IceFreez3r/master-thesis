@@ -140,5 +140,6 @@ rule sqanti_comparison_plots:
         },
         output_dir = "results/plots/sqanti/{plot_group}",
         plot_titles = config["sqanti"]["plot_titles"],
+        dpi = config["sqanti"]["dpi"],
     script:
         "../scripts/sqanti/sqanti_comparison_plots.py"
