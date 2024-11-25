@@ -14,9 +14,10 @@ rule stringtie_run:
         "logs/stringtie/samples/{sample}.log",
     params:
         stringtie_exe=config["stringtie"]["path"],
+        extra=config["stringtie"]["extra"]["run"],
     threads: 8
     shell:
-        "{params.stringtie_exe} {input.bam} -o {output.gtf} -p {threads} -L -G {input.annot_gff} > {log} 2>&1"
+        "{params.stringtie_exe} {input.bam} -o {output.gtf} -p {threads} -L -G {input.annot_gff} {params.extra} > {log} 2>&1"
 
 
 rule stringtie_merge:
@@ -32,11 +33,13 @@ rule stringtie_merge:
         "logs/stringtie/merged/{tissue}.log",
     params:
         stringtie_exe=config["stringtie"]["path"],
+        extra=config["stringtie"]["extra"]["merge"],
     threads: 16
     shell:
-        "{params.stringtie_exe} --merge -o {output.gtf} -p {threads} -G {input.annot_gff} {input.sample_gtfs} > {log} 2>&1"
+        "{params.stringtie_exe} --merge -o {output.gtf} -p {threads} -G {input.annot_gff} {input.sample_gtfs} {params.extra} > {log} 2>&1"
 
 
+# Some entries of the output gtf had no strand info, so they get filtered out
 rule stringtie_filter:
     input:
         gtf="results/stringtie/merged/{tissue}.gtf",

@@ -13,20 +13,20 @@ rule isotools_create:
         ref_fai="resources/reference.fa.fai",
         sample_table=config["sample_table"],
     output:
-        gtf="results/isotools{conda}/transcriptome/{tissue}.gtf",
-        pkl="results/isotools{conda}/pkl/{tissue}.pkl",
+        gtf="results/isotools{version}/transcriptome/{tissue}.gtf",
+        pkl="results/isotools{version}/pkl/{tissue}.pkl",
     log:
-        "logs/isotools{conda}/{tissue}.log",
+        "logs/isotools{version}/{tissue}.log",
     params:
         samples=lambda wildcards: util.samples_for_tissue(wildcards.tissue),
         query=config["isotools"]["query"],
-        unify_ends=lambda wildcards: config["isotools"]["unify_ends"].get('isotools' + wildcards.conda, True),
+        extra=lambda wildcards: config["isotools"]["extra"].get('isotools' + wildcards.version, {}),
     threads: 1
     resources:
         mem_mb=128 * 1024,
         runtime_min=6 * 60,
     conda:
         # Uses advanced filters, which aren't available in the public pip version -> custom environment
-        "isotools{conda}"
+        "isotools"
     script:
         "../scripts/isotools/create.py"

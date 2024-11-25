@@ -11,6 +11,7 @@ params_bed_split_size = snakemake.params.bed_split_size
 log = snakemake.log[0]
 threads = snakemake.threads
 tissue = snakemake.wildcards.tissue
+collapse_extra = snakemake.params.extra
 
 with open(log, "w") as log_file:
     if os.path.getsize(input_bed12) > float(params_bed_split_size):
@@ -37,10 +38,16 @@ with open(log, "w") as log_file:
                 log_file.write(f"Skipping split FLAIR collapse on {chrom} as {output_split_gtf} already exists\n")
                 continue
             log_file.write(f"Running split FLAIR collapse on {chrom}\n")
-            subprocess.run(f"flair collapse --query {os.path.join(split_input, chrom_bed)} \
+            subprocess.run(
+                f"flair collapse --query {os.path.join(split_input, chrom_bed)} \
                            --genome {params_reference_fa} --reads {input_reads} --gtf {input_gtf} \
-                           --threads {threads} --output {output_prefix}", shell=True, check=True,
-                           stdout=log_file, stderr = subprocess.STDOUT, text=True)
+                           --threads {threads} --output {output_prefix} {collapse_extra}",
+                shell=True,
+                check=True,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
 
         log_file.write(f"Concatenating split files\n")
         log_file.write(f"Found files: {os.listdir(split_output)}\n")
@@ -57,7 +64,13 @@ with open(log, "w") as log_file:
                        stderr = subprocess.STDOUT, text=True)
     else:
         log_file.write(f"Running FLAIR collapse on {input_bed12}\n")
-        subprocess.run(f"flair collapse --query {input_bed12} --genome {params_reference_fa} \
+        subprocess.run(
+            f"flair collapse --query {input_bed12} --genome {params_reference_fa} \
                        --reads {input_reads} --gtf {input_gtf} --threads {threads} \
-                       --output {params_output_prefix}", shell=True, check=True, stdout=log_file,
-                       stderr = subprocess.STDOUT, text=True)
+                       --output {params_output_prefix} {collapse_extra}",
+            shell=True,
+            check=True,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )

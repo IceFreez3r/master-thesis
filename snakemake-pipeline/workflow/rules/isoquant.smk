@@ -29,12 +29,13 @@ rule isoquant_run:
         annot_gtf=check_for_annotation_db,
     output:
         gtf=temp("results/isoquant/{tissue}/OUT/OUT.transcript_models.gtf"),
-        db=f"results/isoquant/{{tissue}}/{os.path.basename(config["annot_gtf"]).split(".gz")[0]}.db",
+        db=f"results/isoquant/{{tissue}}/{os.path.basename(config['annot_gtf']).split('.gz')[0]}.db",
     log:
         "logs/isoquant/{tissue}.log",
         "results/isoquant/{tissue}/isoquant.log",
     params:
         output_folder=lambda wc, output: output["gtf"].replace("/OUT/OUT.transcript_models.gtf", ""),
+        extra=config["isoquant"]["extra"],
     threads: 32
     resources:
         mem_mb=512 * 1024,
@@ -45,8 +46,7 @@ rule isoquant_run:
     shell:
         """
         isoquant.py --reference {input.ref_fa} --genedb {input.annot_gtf} --bam {input.bams} \
-                    --data_type pacbio_ccs -o {params.output_folder} --threads {threads} \
-                    --complete_genedb --sqanti_output > {log[0]} 2>&1
+                    -o {params.output_folder} --threads {threads} {params.extra} > {log[0]} 2>&1
         """
 
 
