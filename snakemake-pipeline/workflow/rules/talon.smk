@@ -2,9 +2,6 @@ import pandas as pd
 import os
 import sys
 
-sample_df = pd.read_csv(config['sample_table'], sep="\t")
-samples = sample_df['file'].apply(lambda x: x.split("/")[-1].split('.')[0])
-
 rule talon_label_reads:
     input:
         bam = os.path.join(config['alignment_dir'], '{sample}_aligned.bam'),
@@ -44,9 +41,6 @@ rule talon_initialize_database:
 #     output:
 #         csv = 'results/talon/config.csv'
 #     params:
-#         annot_gtf = config['annot_gtf'],
-#         genome_name = config['genome_name'],
-#         annot_name = config['annot_name'],
 #         sequencing_platform = config['sequencing_platform']
 #     run:
 #         config = []
@@ -73,7 +67,8 @@ rule talon:
     params:
         genome_name = config['genome_name'],
         output_prefix = 'results/talon/',
-        use_tmpdir = config['talon_use_tmpdir']
+        use_tmpdir = config['talon_use_tmpdir'],
+        sequencing_platform = config['sequencing_platform']
     threads: 32
     resources:
         mem_mib = 400 * 1024,
@@ -82,8 +77,6 @@ rule talon:
     conda: '../envs/talon.yaml'
     script:
         '../scripts/talon.py'
-    # shell:
-    #     'talon --db {input.db} --build {params.genome_name} --threads {threads} --o {params.output_prefix} --f {input.config} > {log} 2>&1'
 
 rule talon_abundance:
     input:

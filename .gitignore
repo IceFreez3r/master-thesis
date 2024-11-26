@@ -1,6 +1,7 @@
 .snakemake
 
 results
+resources
 logs
 
 *.pkl

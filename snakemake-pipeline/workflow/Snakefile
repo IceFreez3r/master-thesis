@@ -4,7 +4,11 @@ import pandas as pd
 configfile: "config/config.yaml"
 
 # Hacky attempt to make conda work
-os.environ['PATH']= config['path_to_conda'] + os.pathsep + os.environ['PATH']
+os.environ["PATH"]= config["path_to_conda"] + os.pathsep + os.environ["PATH"]
+
+sample_df = pd.read_csv(config['sample_table'], sep="\t")
+samples = sample_df["sample ID"].tolist()
+gtf_df = pd.read_csv(config['transcriptome_table'], sep="\t")
 
 include: "rules/cerberus.smk"
 include: "rules/talon.smk"
@@ -14,9 +18,29 @@ rule all:
     input:
         "output/plot.png"
 
-rule unzip_gtf:
+rule unzip_annotation:
     output:
-        "results/annotation.gtf"
+        "resources/annotation.gtf"
+    params:
+        gtf_gz = config["annot_gtf"]
+    shell:
+        "gunzip -c {params.gtf_gz} > {output}"
+
+rule unzip_transcriptome:
+    output:
+        gtfs = expand("resources/transcriptome/{sample}.gtf", sample=samples),
+    params:
+        samples = config["transcriptome_table"]
+    run:
+        df = pd.read_csv(params["samples"], sep="\t")
+        for i, row in df.iterrows():
+            sample = row["sample ID"]
+            gtf_gz = row["gtf"]
+            shell("gunzip -c {gtf_gz} > resources/transcriptome/{sample}.gtf")
+
+rule unzip_reference_annotation:
+    output:
+        "resources/reference_annotation.gtf"
     params:
         gtf_gz = config["annot_gtf"]
     shell:

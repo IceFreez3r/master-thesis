@@ -1,26 +1,29 @@
-# ! requires manual installation into a conda environment called "cerberus"
+# ! requires manual installation
 # ! install cerberus from their GitHub https://github.com/mortazavilab/cerberus
+name: cerberus
 channels:
-- conda-forge
-- bioconda
+ - conda-forge
+ - bioconda
 dependencies:
-- python=3.9.0
-- sorted_nearest=0.0.33
-- pip
-- pip:
-- pandas
-- scipy
-- numpy<=1.23
-- seaborn
-- matplotlib
-- tqdm
-- click
-- pybigwig
-- bamread>=0.0.10
-- pyranges>=0.0.71
-- lapa
-- pandarallel
-- swan_vis
-- ternary
-- sklearn
-- sparse
+ - python=3.9.0
+ - sorted_nearest=0.0.33
+ - h5py
+ - pip
+ - python-ternary
+ - pandas
+ - scipy
+ - numpy<=1.23
+ - seaborn
+ - matplotlib
+ - tqdm
+ - click
+ - pybigwig
+ - bamread>=0.0.10
+#  - pyranges=0.0.71 # Clone manually from https://github.com/fairliereese/pyranges and `pip install .`
+ - pandarallel
+ - scikit-learn
+ - sparse
+ - pytables
+ - pip:
+   - swan-vis
+#  - lapa # Clone manually from https://github.com/mortazavilab/lapa
