@@ -78,12 +78,14 @@ sqanti:
       groups: all
     wtc11:
       tools: all
-      tool_names: ["IsoTools v0", "IsoTools v2"]
+      tool_names: ["Peak Finding", "TSS Extension"]
       groups: ["CapTrap_ONT/wtc11","CapTrap_PacBio/wtc11","cDNA_ONT/wtc11","cDNA_PacBio/wtc11","dRNA_ONT/wtc11","R2C2_ONT/wtc11"]
-      group_names: ["CapTrap_ONT","CapTrap_PacBio","cDNA_ONT","cDNA_PacBio","dRNA_ONT","R2C2_ONT"]
+      group_names: ["CapTrap ONT","CapTrap PacBio","cDNA ONT","cDNA PacBio","dRNA ONT","R2C2 ONT"]
   # Whether to include titles in plots
   plot_titles: False
   dpi: 300
+  tss_cmap: "YlGnBu"
+  pas_cmap: "magma_r"
 
 ### MISCELLANEOUS ###
 # cluster couldn't find conda
