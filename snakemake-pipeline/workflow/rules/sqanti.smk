@@ -71,13 +71,17 @@ class SQANTI_plots:
         for version, groups in self.plot_groups.items():
             if groups["tools"] == "all":
                 self.plot_groups[version]["tools"] = WORKING_TOOLS
-            if not "toolnames" in groups:
-                self.plot_groups[version]["toolnames"] = groups["tools"]
-            assert len(self.plot_groups[version]["tools"]) == len(self.plot_groups[version]["toolnames"]), f"Number of tools and toolnames must match for {version}"
+            if not "tool_names" in groups:
+                self.plot_groups[version]["tool_names"] = groups["tools"]
+            else:
+                self.plot_groups[version]["tool_names"] = groups["tool_names"]
+            assert len(self.plot_groups[version]["tools"]) == len(self.plot_groups[version]["tool_names"]), f"Number of tools and toolnames must match for {version}"
             if groups["groups"] == "all":
                 self.plot_groups[version]["groups"] = util.tissues
             if not "group_names" in groups:
                 self.plot_groups[version]["group_names"] = groups["groups"]
+            else:
+                self.plot_groups[version]["group_names"] = groups["group_names"]
             assert len(self.plot_groups[version]["groups"]) == len(self.plot_groups[version]["group_names"]), f"Number of groups and group_names must match for {version}"
 
     def __getitem__(self, version):
@@ -105,14 +109,14 @@ rule sqanti_comparison_plots:
         "results/plots/sqanti/{plot_group}/CAGE_support_NIC.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_NNC.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_non_FSM.png",
-        "results/plots/sqanti/{plot_group}/polyA_site_FSM.png",
-        "results/plots/sqanti/{plot_group}/polyA_site_ISM.png",
-        "results/plots/sqanti/{plot_group}/polyA_site_NIC.png",
-        "results/plots/sqanti/{plot_group}/polyA_site_NNC.png",
-        "results/plots/sqanti/{plot_group}/polyA_motif_FSM.png",
-        "results/plots/sqanti/{plot_group}/polyA_motif_ISM.png",
-        "results/plots/sqanti/{plot_group}/polyA_motif_NIC.png",
-        "results/plots/sqanti/{plot_group}/polyA_motif_NNC.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_FSM.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_ISM.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_NIC.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_NNC.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_FSM.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_ISM.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_NIC.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_NNC.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_monoexons.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_ISM_no_monoexons.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_no_monoexons.png",
@@ -121,6 +125,16 @@ rule sqanti_comparison_plots:
         "results/plots/sqanti/{plot_group}/CAGE_support_ISM_no_monoexons_no_3fragment.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_NIC_no_monoexons_no_3fragment.png",
         "results/plots/sqanti/{plot_group}/CAGE_support_NNC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_FSM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_ISM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_NIC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_motif_NNC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_FSM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_ISM_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_NIC_no_monoexons_no_3fragment.png",
+        "results/plots/sqanti/{plot_group}/PolyA_site_NNC_no_monoexons_no_3fragment.png",
         stats = "results/plots/sqanti/{plot_group}/stats.tsv",
     log:
         "logs/sqanti/comparison/{plot_group}.log",
@@ -128,7 +142,7 @@ rule sqanti_comparison_plots:
         "../envs/seaborn.yaml"
     params:
         tools = lambda wildcards: sqanti_plots[wildcards.plot_group]["tools"],
-        toolnames = lambda wildcards: sqanti_plots[wildcards.plot_group]["toolnames"],
+        tool_names = lambda wildcards: sqanti_plots[wildcards.plot_group]["tool_names"],
         groups = lambda wildcards: sqanti_plots[wildcards.plot_group]["groups"],
         group_names = lambda wildcards: sqanti_plots[wildcards.plot_group]["group_names"],
         classifications = lambda wildcards: {
@@ -141,5 +155,7 @@ rule sqanti_comparison_plots:
         output_dir = "results/plots/sqanti/{plot_group}",
         plot_titles = config["sqanti"]["plot_titles"],
         dpi = config["sqanti"]["dpi"],
+        tss_cmap = config["sqanti"]["tss_cmap"],
+        pas_cmap = config["sqanti"]["pas_cmap"],
     script:
         "../scripts/sqanti/sqanti_comparison_plots.py"
