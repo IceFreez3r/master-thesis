@@ -23,7 +23,7 @@ PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
-tools: ["isotools_v0", "isotools_v2"]
+tools: ["isotools_peak_balanced", "isotools_peak_strict", "isotools_tss_balanced", "isotools_tss_strict"]
 
 flair:
   # FLAIRs memory consumption drastically increase for .bed files over 1GB
@@ -39,13 +39,27 @@ isoquant:
   extra: "--data_type pacbio_ccs --complete_gene_db"
 
 isotools:
-  query: "BALANCED"
   # Extra parameters for each IsoTools version for each function call
-  # Supported are parameters for add_sample_from_bam and add_qc_metrics
+  # Supported are parameters for add_sample_from_bam, add_qc_metrics and write_gtf
+  # a query is required in write_gtf, but the restriction can be circumvented by passing an empty string
   extra:
-    isotools_v0:
-      add_qc_metrics: {correct_tss: False}
-    isotools_v2: {}
+    isotools_peak_balanced:
+      add_qc_metrics:
+        correct_tss: False
+      write_gtf:
+        query: "BALANCED"
+    isotools_peak_strict:
+      add_qc_metrics:
+        correct_tss: False
+      write_gtf:
+        query: "STRICT"
+
+    isotools_tss_balanced:
+      write_gtf:
+        query: "BALANCED"
+    isotools_tss_strict:
+      write_gtf:
+        query: "STRICT"
 
 stringtie:
   # ! Stringtie needs manual building with make
@@ -74,11 +88,11 @@ sqanti:
   extra: "--ratio_TSS_metric mean"
   plot_groups:
     all:
-      tools: ["isotools_v0", "isotools_v2"]
+      tools: all
       groups: all
     wtc11:
-      tools: all
-      tool_names: ["Peak Finding", "TSS Extension"]
+      tools: ["isotools_peak_balanced", "isotools_tss_balanced", "isotools_peak_strict", "isotools_tss_strict"]
+      tool_names: ["Peak Finding BALANCED", "TSS Extension BALANCED", "Peak Finding STRICT", "TSS Extension STRICT"]
       groups: ["CapTrap_ONT/wtc11","CapTrap_PacBio/wtc11","cDNA_ONT/wtc11","cDNA_PacBio/wtc11","dRNA_ONT/wtc11","R2C2_ONT/wtc11"]
       group_names: ["CapTrap ONT","CapTrap PacBio","cDNA ONT","cDNA PacBio","dRNA ONT","R2C2 ONT"]
   # Whether to include titles in plots

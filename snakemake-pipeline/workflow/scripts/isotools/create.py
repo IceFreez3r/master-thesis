@@ -16,12 +16,13 @@ alignments = snakemake.input.bams
 
 tissue = snakemake.wildcards.tissue
 samples = snakemake.params.samples
-query = snakemake.params.query
 metadata = pd.read_csv(metadata_path, sep="\t")
 
 extra = snakemake.params.extra
 extra_add_sample_from_bam = extra.get("add_sample_from_bam", {})
 extra_add_qc_metrics = extra.get("add_qc_metrics", {})
+extra_write_gtf = extra.get("write_gtf")
+assert "query" in extra_write_gtf, "query is required in extra.write_gtf. If you explicitly want to set it to None, use `query: ''`"
 
 logger.info(f"Creating isotools object for tissue {tissue} from reference")
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)
@@ -38,5 +39,5 @@ logger.info("Computing qc metrics. Unifying ends: {unify_ends}")
 isoseq.add_qc_metrics(genome_path, progress_bar=False, **extra_add_qc_metrics)
 
 logger.info("Exporting isotools to GTF and pickle")
-isoseq.write_gtf(snakemake.output.gtf, gzip=False, query=query)
+isoseq.write_gtf(snakemake.output.gtf, gzip=False, **extra_write_gtf)
 isoseq.save(snakemake.output.pkl)
