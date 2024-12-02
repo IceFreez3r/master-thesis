@@ -35,7 +35,7 @@ rule isoquant_run:
         "results/isoquant/{tissue}/isoquant.log",
     params:
         output_folder=lambda wc, output: output["gtf"].replace("/OUT/OUT.transcript_models.gtf", ""),
-        extra=config["isoquant"]["extra"],
+        extra=config["isoquant"].get("extra", ""),
     threads: 32
     resources:
         mem_mb=512 * 1024,

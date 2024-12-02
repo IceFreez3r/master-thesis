@@ -19,7 +19,7 @@ rule isotools_create:
         "logs/isotools{version}/{tissue}.log",
     params:
         samples=lambda wildcards: util.samples_for_tissue(wildcards.tissue),
-        extra=lambda wildcards: config["isotools"]["extra"].get('isotools' + wildcards.version, {}),
+        extra=lambda wildcards: config["isotools"].get('isotools' + wildcards.version),
     threads: 1
     resources:
         mem_mb=128 * 1024,

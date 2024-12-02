@@ -3,7 +3,7 @@ import glob
 import os
 
 localrules:
-    preprocess_reference_fa,
+    copy_reference_fa,
     unzip_rnaseq_reads,
     preprocess_polyA_peaks,
     samtools_index

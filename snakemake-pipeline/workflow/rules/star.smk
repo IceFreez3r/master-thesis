@@ -12,7 +12,7 @@ rule star_index:
         "logs/star/index.log"
     params:
         limitGenomeGenerateRAM = lambda wc, resources: resources.mem_mb * 1024 * 1024,
-        extra = config["star"]["index"]["extra"],
+        extra = config["star"].get("extra", {}).get("index", ""),
     threads: 64
     resources:
         mem_mb=128 * 1024,
@@ -41,7 +41,7 @@ rule star_map:
         "results/star/{sample}/{sample}.Log.final.out",
         main = "logs/star/{sample}.log",
     params:
-        extra = config["star"]["align"]["extra"],
+        extra = config["star"].get("extra", {}).get("align", ""),
         limitBAMsortRAM = lambda wc, resources: f"--limitBAMsortRAM {resources.mem_mb * 1024 * 1024}",
         output_prefix = lambda wc, output: output.sj_tab.replace("SJ.out.tab", ""),
     threads: 16

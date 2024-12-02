@@ -39,7 +39,7 @@ rule sqanti_qc:
         sqanti_qc = os.path.join(config["sqanti"]["path"], "sqanti3_qc.py"),
         output_dir = lambda wc, output: os.path.dirname(output.gtf),
         extra = "--report both --skipORF",
-        extra_user = config["sqanti"]["extra"],
+        extra_user = config["sqanti"].get("extra", ""),
         short_read_params = lambda wildcards, input: f"--coverage {','.join(input.sj_tabs)} --SR_bam {os.path.dirname(input.sr_bams[0])} --expression {','.join(input.kallisto)}" if util.use_short_reads else "",
         # expression = lambda wildcards, input: ','.join(input.kallisto),
         # sj_tabs = lambda wildcards, input: ','.join(input.sj_tabs),

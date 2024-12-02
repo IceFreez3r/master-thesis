@@ -54,7 +54,7 @@ rule flair_correct:
         "logs/flair/correct/{tissue}.log",
     params:
         output_prefix=lambda wc, output: output["correct"].replace("_all_corrected.bed", ""),
-        extra=config["flair"]["extra"]["correct"],
+        extra=config["flair"].get("extra", {}).get("correct", ""),
     threads: 8
     resources:
         mem_mb=16 * 1024,
@@ -80,8 +80,8 @@ rule flair_collapse:
         "logs/flair/collapse/{tissue}_all_collapsed.log",
     params:
         output_prefix=lambda wc, output: output.gtf.replace(f".isoforms.gtf", ""),
-        bed_split_size=config["flair"]["bed_split_size"],
-        extra=config["flair"]["extra"]["collapse"],
+        bed_split_size=config["flair"].get("bed_split_size"),
+        extra=config["flair"].get("extra", {}).get("collapse", ""),
     threads: 16
     resources:
         mem_mb=64 * 1024,
