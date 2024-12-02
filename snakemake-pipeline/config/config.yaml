@@ -42,24 +42,23 @@ isotools:
   # Extra parameters for each IsoTools version for each function call
   # Supported are parameters for add_sample_from_bam, add_qc_metrics and write_gtf
   # a query is required in write_gtf, but the restriction can be circumvented by passing an empty string
-  extra:
-    isotools_peak_balanced:
-      add_qc_metrics:
-        correct_tss: False
-      write_gtf:
-        query: "BALANCED"
-    isotools_peak_strict:
-      add_qc_metrics:
-        correct_tss: False
-      write_gtf:
-        query: "STRICT"
+  isotools_peak_balanced:
+    add_qc_metrics:
+      correct_tss: False
+    write_gtf:
+      query: "BALANCED"
+  isotools_peak_strict:
+    add_qc_metrics:
+      correct_tss: False
+    write_gtf:
+      query: "STRICT"
 
-    isotools_tss_balanced:
-      write_gtf:
-        query: "BALANCED"
-    isotools_tss_strict:
-      write_gtf:
-        query: "STRICT"
+  isotools_tss_balanced:
+    write_gtf:
+      query: "BALANCED"
+  isotools_tss_strict:
+    write_gtf:
+      query: "STRICT"
 
 stringtie:
   # ! Stringtie needs manual building with make
@@ -73,11 +72,10 @@ stringtie:
 ### SQANTI SETTINGS ###
 star:
   # Extra options for STAR
-  index:
-    extra: ""
-  align:
+  extra:
+    index: ""
     # Same options as SQANTI3 would use (very close to default ENCODE options)
-    extra: "--alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --outFilterType BySJout --outSAMunmapped Within --outFilterMultimapNmax 20 --outFilterMismatchNoverLmax 0.04 --outFilterMismatchNmax 999 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --sjdbScore 1 --twopassMode Basic"
+    align: "--alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --outFilterType BySJout --outSAMunmapped Within --outFilterMultimapNmax 20 --outFilterMismatchNoverLmax 0.04 --outFilterMismatchNmax 999 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --sjdbScore 1 --twopassMode Basic"
 
 sqanti:
   # Path to the SQANTI3 repo

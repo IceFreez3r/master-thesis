@@ -1,13 +1,16 @@
 import os
 import pandas as pd
 import glob
+from snakemake.utils import validate
 
 
 configfile: "config/config.yaml"
+validate(config, "../config/config.schema.yaml")
 
 
 # Hacky attempt to make conda work
-os.environ["PATH"] = os.environ["PATH"] + os.pathsep + config["path_to_conda"]
+if "path_to_conda" in config:
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + config["path_to_conda"]
 # os.environ["PATH"] = config["path_to_conda"] + os.pathsep + os.environ["PATH"]
 
 

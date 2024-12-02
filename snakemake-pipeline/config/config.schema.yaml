@@ -1,0 +1,194 @@
+$schema: http://json-schema.org/draft-07/schema#
+type: object
+properties:
+  annot_gtf:
+    type: string
+    description: Path to the annotation GTF file
+  reference_fa:
+    type: string
+    description: Path to the reference FASTA file
+
+  sample_table:
+    type: string
+    description: Path to the sample table TSV file
+  rnaseq_fastq_fofn:
+    type: [string, "null"]
+    description: Path to the RNA-seq FASTQ FOFN file or null if not available
+  CAGE_table:
+    type: string
+    description: Path to the CAGE table TSV file
+  PolyASitePeaks:
+    type: string
+    description: Path to the PolyASite peaks BED file
+
+  tools:
+    type: array
+    items:
+      type: string
+    description: List of tools to be used in the pipeline
+
+  flair:
+    type: object
+    properties:
+      bed_split_size:
+        type: [number, string]
+        description: Size threshold for splitting BED files
+        default: 1e9
+      extra:
+        type: object
+        properties:
+          correct:
+            type: string
+            description: Extra command line options for FLAIR correct
+          collapse:
+            type: string
+            description: Extra command line options for FLAIR collapse
+  isoquant:
+    type: object
+    properties:
+      extra:
+        type: string
+        description: Extra command line options for IsoQuant
+  isotools:
+    type: object
+    patternProperties:
+      "isotools.*":
+        type: object
+        properties:
+          add_sample_from_bam:
+            type: object
+            description: Extra command line options for IsoTools add_sample_from_bam
+            properties:
+              extra:
+                type: string
+          add_qc_metrics:
+            type: object
+            description: Extra command line options for IsoTools add_qc_metrics
+          write_gtf:
+            type: object
+            description: Extra command line options for IsoTools write_gtf
+            properties:
+              query:
+                type: string
+                description: Query for write_gtf
+            required:
+              - query
+        required:
+          - write_gtf
+  stringtie:
+    type: object
+    properties:
+      path:
+        type: string
+        description: Path to the Stringtie binary
+      extra:
+        type: object
+        properties:
+          run:
+            type: string
+            description: Extra command line options for Stringtie run
+          merge:
+            type: string
+            description: Extra command line options for Stringtie merge
+    required:
+      - path
+
+  star:
+    type: object
+    properties:
+      extra:
+        type: object
+        properties:
+          index:
+            type: string
+            description: Extra options for STAR index
+          align:
+            type: string
+            description: Extra options for STAR align
+
+  sqanti:
+    type: object
+    properties:
+      path:
+        type: string
+        description: Path to the SQANTI3 repo
+      polyA_motif_list:
+        type: string
+        description: Path to the polyA motif list
+      extra:
+        type: string
+        description: Extra command line options for SQANTI3
+      plot_groups:
+        type: object
+        patternProperties:
+          ".*":
+            type: object
+            description: Create plots for different groups. Give each group a custom name
+            properties:
+              tools:
+                OneOf:
+                  - type: array
+                    items:
+                      type: string
+                  - type: string
+                    enum: ["all"]
+                description: Tools to be used for plotting
+              tool_names:
+                type: array
+                items:
+                  type: string
+                description: Names of the tools
+              groups:
+                oneOf:
+                  - type: string
+                    enum: ["all"]
+                  - type: array
+                    items:
+                      type: string
+                description: Groups to be used for plotting
+              group_names:
+                type: array
+                items:
+                  type: string
+                description: Names of the groups
+            required:
+              - tools
+              - groups
+      plot_titles:
+        type: boolean
+        description: Whether to include titles in plots
+      dpi:
+        type: integer
+        description: DPI for plots
+      tss_cmap:
+        type: string
+        description: Color map for TSS
+      pas_cmap:
+        type: string
+        description: Color map for PAS
+    required:
+      - path
+      - polyA_motif_list
+      - plot_groups
+      - plot_titles
+      - dpi
+      - tss_cmap
+      - pas_cmap
+
+  path_to_conda:
+    type: string
+    description: Path to the conda executable in case it is not in the PATH
+
+required:
+  - annot_gtf
+  - reference_fa
+  - sample_table
+  - CAGE_table
+  - PolyASitePeaks
+  - tools
+  - flair
+  - isoquant
+  - isotools
+  - stringtie
+  - star
+  - sqanti

@@ -14,7 +14,7 @@ rule stringtie_run:
         "logs/stringtie/samples/{sample}.log",
     params:
         stringtie_exe=config["stringtie"]["path"],
-        extra=config["stringtie"]["extra"]["run"],
+        extra=config["stringtie"].get("extra", {}).get("run", ""),
     threads: 8
     shell:
         "{params.stringtie_exe} {input.bam} -o {output.gtf} -p {threads} -L -G {input.annot_gff} {params.extra} > {log} 2>&1"
@@ -33,7 +33,7 @@ rule stringtie_merge:
         "logs/stringtie/merged/{tissue}.log",
     params:
         stringtie_exe=config["stringtie"]["path"],
-        extra=config["stringtie"]["extra"]["merge"],
+        extra=config["stringtie"].get("extra", {}).get("merge", ""),
     threads: 16
     shell:
         "{params.stringtie_exe} --merge -o {output.gtf} -p {threads} -G {input.annot_gff} {input.sample_gtfs} {params.extra} > {log} 2>&1"
