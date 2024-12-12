@@ -36,7 +36,7 @@ flair:
 
 isoquant:
   # Extra command line options for IsoQuant, see https://ablab.github.io/IsoQuant/cmd.html
-  extra: "--data_type pacbio_ccs --complete_gene_db"
+  extra: "--data_type pacbio_ccs --complete_genedb"
 
 isotools:
   # Extra parameters for each IsoTools version for each function call

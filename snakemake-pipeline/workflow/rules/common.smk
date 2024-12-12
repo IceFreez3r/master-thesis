@@ -76,16 +76,16 @@ class Utility:
         if sample_file.endswith(".bam"):
             return sample_file
         if config["test_run"]:
-            return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam"
-        return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam"
+            return f"resources/test/mapped_reads/{sample}_sorted_test.bam"
+        return f"resources/mapped_reads/{sample}_sorted.bam"
 
     def long_read_bai_for_sample(self, sample):
         sample_file = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         if sample_file.endswith(".bam"):
             return f"{sample_file}.bai"
         if config["test_run"]:
-            return f"resources/test/mapped_reads/{wildcards["sample"]}_sorted_test.bam.bai"
-        return f"resources/mapped_reads/{wildcards["sample"]}_sorted.bam.bai"
+            return f"resources/test/mapped_reads/{sample}_sorted_test.bam.bai"
+        return f"resources/mapped_reads/{sample}_sorted.bam.bai"
 
 
     def samples_for_tissue(self, tissue):

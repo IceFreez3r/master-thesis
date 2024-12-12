@@ -13,8 +13,8 @@ rule flair:
 
 rule flair_bam_to_bed12:
     input:
-        bam=lambda wildcards: util.long_read_bam_for_sample(sample),
-        bai=lambda wildcards: util.long_read_bai_for_sample(sample),
+        bam=lambda wildcards: util.long_read_bam_for_sample(wildcards.sample),
+        bai=lambda wildcards: util.long_read_bai_for_sample(wildcards.sample),
     output:
         bed12="resources/bed12/{sample}.bed12",
     log:
