@@ -49,7 +49,7 @@ rule star_map:
         mem_mb=128 * 1024,
         # STAR seems to sometimes get stuck? almost all jobs finished in <25 minutes
         # but two hit the 2 hour limit, after a restart they also finished in <25 minutes
-        runtime_min=1 * 60,
+        runtime_min=2 * 60,
         disk_mb=128 * 1024
     conda:
         "../envs/star.yaml"
