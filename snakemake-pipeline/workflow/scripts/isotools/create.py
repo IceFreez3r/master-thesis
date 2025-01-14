@@ -35,7 +35,7 @@ for sample, alignment in zip(samples, alignments):
     logger.info(f"Adding sample {sample} from {alignment} to isotools object")
     isoseq.add_sample_from_bam(fn=alignment, sample_name=sample, group=group, progress_bar=False, **extra_add_sample_from_bam)
 
-logger.info("Computing qc metrics. Unifying ends: {unify_ends}")
+logger.info("Computing qc metrics")
 isoseq.add_qc_metrics(genome_path, progress_bar=False, **extra_add_qc_metrics)
 
 logger.info("Exporting isotools to GTF and pickle")
