@@ -57,22 +57,35 @@ properties:
         properties:
           add_sample_from_bam:
             type: object
-            description: Extra command line options for IsoTools add_sample_from_bam
+            description: Extra options for IsoTools add_sample_from_bam
             properties:
               extra:
                 type: string
           add_qc_metrics:
             type: object
-            description: Extra command line options for IsoTools add_qc_metrics
+            description: Extra options for IsoTools add_qc_metrics
           write_gtf:
             type: object
-            description: Extra command line options for IsoTools write_gtf
+            description: Extra options for IsoTools write_gtf
             properties:
               query:
                 type: string
                 description: Query for write_gtf
             required:
               - query
+          training_sequences:
+            type: object
+            description: Extra options for IsoTools training_sequences
+            properties:
+              criterium:
+                type: string
+                description: Criterium for training_sequences
+              query:
+                type: string
+                description: Filter query that is passed to iter_transcripts
+            additionalProperties: true
+            required:
+              - criterium
         required:
           - write_gtf
   stringtie:

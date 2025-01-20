@@ -46,3 +46,5 @@ rule all:
         upset_plots,
         expand("results/plots/sqanti/{group}/transcript_counts.png", group=config["sqanti"]["plot_groups"]),
         "results/meta/dag.pdf",
+        expand("results/{tool}/training_sequences/{group}_{filter}.fa", tool=isotools_training_sequences_versions(),
+               group=util.tissues, filter=['positive', 'negative']),

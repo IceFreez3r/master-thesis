@@ -23,7 +23,7 @@ PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
-tools: ["isotools_peak_balanced", "isotools_peak_strict", "isotools_tss_balanced", "isotools_tss_strict"]
+tools: ["flair", "isoquant", "isotools_v0", "isotools_v2", "stringtie"]
 
 flair:
   # FLAIRs memory consumption drastically increase for .bed files over 1GB
@@ -42,23 +42,19 @@ isotools:
   # Extra parameters for each IsoTools version for each function call
   # Supported are parameters for add_sample_from_bam, add_qc_metrics and write_gtf
   # a query is required in write_gtf, but the restriction can be circumvented by passing an empty string
-  isotools_peak_balanced:
+  isotools_v0:
     add_qc_metrics:
       correct_tss: False
     write_gtf:
       query: "BALANCED"
-  isotools_peak_strict:
-    add_qc_metrics:
-      correct_tss: False
-    write_gtf:
-      query: "STRICT"
-
-  isotools_tss_balanced:
+  isotools_v2:
+    add_sample_from_bam:
+      save_readnames: True
     write_gtf:
       query: "BALANCED"
-  isotools_tss_strict:
-    write_gtf:
-      query: "STRICT"
+    training_sequences:
+      query: "BALANCED"
+      criterium: "sqanti_classification.within_CAGE_peak"
 
 stringtie:
   # ! Stringtie needs manual building with make

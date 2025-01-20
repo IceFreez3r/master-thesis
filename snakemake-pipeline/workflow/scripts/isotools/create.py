@@ -14,7 +14,7 @@ annotation_gff = snakemake.input.annotation_gff
 metadata_path = snakemake.input.sample_table
 alignments = snakemake.input.bams
 
-tissue = snakemake.wildcards.tissue
+group = snakemake.wildcards.group
 samples = snakemake.params.samples
 metadata = pd.read_csv(metadata_path, sep="\t")
 
@@ -24,7 +24,7 @@ extra_add_qc_metrics = extra.get("add_qc_metrics", {})
 extra_write_gtf = extra.get("write_gtf")
 assert "query" in extra_write_gtf, "query is required in extra.write_gtf. If you explicitly want to set it to None, use `query: ''`"
 
-logger.info(f"Creating isotools object for tissue {tissue} from reference")
+logger.info(f"Creating isotools object for group {group} from reference")
 isoseq: Transcriptome = Transcriptome.from_reference(annotation_gff, progress_bar=False)
 
 for sample, alignment in zip(samples, alignments):
