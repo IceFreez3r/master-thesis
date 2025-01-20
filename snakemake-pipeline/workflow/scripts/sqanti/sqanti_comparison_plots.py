@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import json
 import logging
+import itertools
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO, filename=snakemake.log[0])
@@ -153,8 +154,8 @@ plt.savefig(os.path.join(OUTPUT_DIR, 'transcript_counts_subcategory_ISM.png'), d
 plt.close()
 
 logger.info('Category counts plotted')
-# # All
 
+#region Heatmaps
 def heatmap(df: pd.DataFrame, column, export_name, header_suffix='', **params):
     df = df.copy()
     df.loc[:,'relative_metric'] = df[column] / df['count']
@@ -181,189 +182,67 @@ def heatmap(df: pd.DataFrame, column, export_name, header_suffix='', **params):
         plt.title(f'Heatmap of {column}{header_suffix}')
     plt.xlabel('')
     plt.ylabel('')
-    plt.savefig(os.path.join(OUTPUT_DIR, f'{export_name}.png'), bbox_inches='tight', dpi=DPI)
+    output_path = os.path.join(OUTPUT_DIR, f'{export_name}.png')
+    plt.savefig(output_path, bbox_inches='tight', dpi=DPI)
+    logger.info(f'Heatmap of {column}{header_suffix} plotted and saved to {output_path}')
     plt.close()
 
-heatmap(agg_all, 'CAGE support', export_name='CAGE_support', cmap=TSS_CMAP)
-heatmap(agg_all, 'TSS ratio', export_name='TSS_ratio', cmap=TSS_CMAP)
-# heatmap(agg_all, 'start both', cmap=TSS_CMAP)
-
-heatmap(agg_all, 'polyA site', export_name='PolyA_site', cmap=PAS_CMAP)
-heatmap(agg_all, 'polyA motif', export_name='PolyA_motif', cmap=PAS_CMAP)
-# heatmap(agg_all, 'end both', cmap=PAS_CMAP)
-
-# # By Category
-
-non_fsm_df = agg_by_category.loc[agg_by_category['category'] != 'FSM'].groupby(['group', 'tool']).sum().reset_index()
-
-# ## Starts
-
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'CAGE support',
-        header_suffix=' for FSM', export_name='CAGE_support_FSM', cmap=TSS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'CAGE support',
-        header_suffix=' for ISM', export_name='CAGE_support_ISM', cmap=TSS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NIC'], 'CAGE support',
-        header_suffix=' for NIC', export_name='CAGE_support_NIC', cmap=TSS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NNC'], 'CAGE support',
-        header_suffix=' for NNC', export_name='CAGE_support_NNC', cmap=TSS_CMAP)
-heatmap(non_fsm_df, 'CAGE support',
-        header_suffix=' for non-FSM', export_name='CAGE_support_non_FSM', cmap=TSS_CMAP)
-
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'TSS ratio',
-#       header_suffix=' for FSM', cmap=TSS_CMAP)
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'TSS ratio',
-#       header_suffix=' for ISM', cmap=TSS_CMAP)
-# heatmap(non_fsm_df, 'TSS ratio',
-#       header_suffix=' for non-FSM', cmap=TSS_CMAP)
-
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'start both',
-#       header_suffix=' for FSM', cmap=TSS_CMAP)
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'start both',
-#       header_suffix=' for ISM', cmap=TSS_CMAP)
-# heatmap(non_fsm_df, 'start both',
-#       header_suffix=' for non-FSM', cmap=TSS_CMAP)
-
-# ## Ends
-
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'polyA site',
-        header_suffix=' for FSM', export_name="PolyA_site_FSM", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'polyA site',
-        header_suffix=' for ISM', export_name="PolyA_site_ISM", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NIC'], 'polyA site',
-        header_suffix=' for NIC', export_name="PolyA_site_NIC", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NNC'], 'polyA site',
-        header_suffix=' for NNC', export_name="PolyA_site_NNC", cmap=PAS_CMAP)
-# heatmap(non_fsm_df, 'polyA site',
-#       header_suffix=' for non-FSM', cmap=PAS_CMAP)
-
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'polyA motif',
-        header_suffix=' for FSM', export_name="PolyA_motif_FSM", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'polyA motif',
-        header_suffix=' for ISM', export_name="PolyA_motif_ISM", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NIC'], 'polyA motif',
-        header_suffix=' for NIC', export_name="PolyA_motif_NIC", cmap=PAS_CMAP)
-heatmap(agg_by_category.loc[agg_by_category['category'] == 'NNC'], 'polyA motif',
-        header_suffix=' for NNC', export_name="PolyA_motif_NNC", cmap=PAS_CMAP)
-# heatmap(non_fsm_df, 'polyA motif',
-#       header_suffix=' for non-FSM', cmap=PAS_CMAP)
-
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'FSM'], 'end both',
-#       header_suffix=' for FSM', cmap=PAS_CMAP)
-# heatmap(agg_by_category.loc[agg_by_category['category'] == 'ISM'], 'end both',
-#       header_suffix=' for ISM', cmap=PAS_CMAP)
-# heatmap(non_fsm_df, 'end both', header_suffix=' for non-FSM', cmap=PAS_CMAP)
-
-logger.info('Category heatmaps plotted')
-
-# # Subcategory
-
-# ## Only Monoexons
+def heatmaps(df: pd.DataFrame, column, filters: list[list[tuple[str, pd.Series]]], **params):
+    '''
+    :param df: DataFrame to filter
+    :param column: Column to plot
+    :param filters: List of list of tuples with the name and a filter in form of a pandas Series
+        Passed to itertools.product to generate all combinations. Use an empty string and None to skip
+    :param params: Additional parameters to pass to the heatmap function
+    '''
+    for filter_tuple in itertools.product(*filters):
+        df_filtered = df.copy(deep=True)
+        suffix = ''
+        for name, f in filter_tuple:
+            if name == '' and f is None:
+                continue
+            df_filtered = df_filtered.loc[f]
+            suffix += ' ' + name
+        df_filtered = df_filtered.groupby(['tool', 'group']).sum().reset_index()
+        heatmap(df_filtered, column, (column + suffix).replace(' ', '_'), suffix, **params)
 
 mono_exons = agg_by_subcategory.loc[agg_by_subcategory['subcategory'] == 'mono-exon'].groupby(['group', 'tool']).sum().reset_index()
-heatmap(mono_exons, 'CAGE support', header_suffix=' for Monoexons',
-        export_name='CAGE_support_monoexons', cmap=TSS_CMAP)
-# heatmap(mono_exons, 'TSS ratio', header_suffix=' for Monoexons', cmap=TSS_CMAP)
-# heatmap(mono_exons, 'start both', header_suffix=' for Monoexons', cmap=TSS_CMAP)
+heatmap(mono_exons, 'CAGE support', header_suffix=' for Monoexons', export_name='CAGE_support_monoexons', cmap=TSS_CMAP)
 
-# ## ISM w/o Monoexons
+FSM = agg_by_subcategory['category'] == 'FSM'
+ISM = agg_by_subcategory['category'] == 'ISM'
+NIC = agg_by_subcategory['category'] == 'NIC'
+NNC = agg_by_subcategory['category'] == 'NNC'
 
-no_mono_ISM = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index()
-heatmap(no_mono_ISM, 'CAGE support', header_suffix=' for ISM w/o Monoexons',
-        export_name='CAGE_support_ISM_no_monoexons', cmap=TSS_CMAP)
-# heatmap(no_mono_ISM, 'TSS ratio', header_suffix=' for ISM w/o Monoexons', cmap=TSS_CMAP)
-# heatmap(no_mono_ISM, 'start both', header_suffix=' for ISM w/o Monoexons', cmap=TSS_CMAP)
+no_monoexon = agg_by_subcategory['subcategory'] != 'mono-exon'
+no_3prime = agg_by_subcategory['subcategory'] != '3prime_fragment'
+no_5prime = agg_by_subcategory['subcategory'] != '5prime_fragment'
 
-# # All w/o Monoexons
-
-no_mono_all = agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon')].groupby(['group', 'tool']).sum().reset_index()
-heatmap(no_mono_all, 'CAGE support', header_suffix=' w/o Monoexons',
-        export_name='CAGE_support_no_monoexons', cmap=TSS_CMAP)
-# heatmap(no_mono_all, 'TSS ratio', header_suffix=' w/o Monoexons', cmap=TSS_CMAP)
-# heatmap(no_mono_all, 'start both', header_suffix=' w/o Monoexons', cmap=TSS_CMAP)
-
-# # No monoexons and 3' fragments
-
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment')].groupby(['group', 'tool']).sum().reset_index(),
-        'CAGE support',
-        header_suffix=' w/o Monoexons and 3\' Fragments',
-        export_name='CAGE_support_no_monoexons_no_3fragment',
-        cmap=TSS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'FSM')].groupby(['group', 'tool']).sum().reset_index(),
-        'CAGE support',
-        header_suffix=' w/o Monoexons and 3\' Fragments',
-        export_name='CAGE_support_FSM_no_monoexons_no_3fragment',
-        cmap=TSS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index(),
-        'CAGE support',
-        header_suffix=' w/o Monoexons and 3\' Fragments',
-        export_name='CAGE_support_ISM_no_monoexons_no_3fragment',
-        cmap=TSS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NIC')].groupby(['group', 'tool']).sum().reset_index(),
-        'CAGE support',
-        header_suffix=' w/o Monoexons and 3\' Fragments',
-        export_name='CAGE_support_NIC_no_monoexons_no_3fragment',
-        cmap=TSS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '3prime_fragment') & (agg_by_subcategory['category'] == 'NNC')].groupby(['group', 'tool']).sum().reset_index(),
-        'CAGE support',
-        header_suffix=' w/o Monoexons and 3\' Fragments',
-        export_name='CAGE_support_NNC_no_monoexons_no_3fragment',
-        cmap=TSS_CMAP)
-
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA site',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_site_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'FSM')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA site',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_site_FSM_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA site',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_site_ISM_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'NIC')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA site',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_site_NIC_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'NNC')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA site',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_site_NNC_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA motif',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_motif_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'FSM')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA motif',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_motif_FSM_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'ISM')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA motif',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_motif_ISM_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'NIC')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA motif',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_motif_NIC_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
-heatmap(agg_by_subcategory.loc[(agg_by_subcategory['subcategory'] != 'mono-exon') & (agg_by_subcategory['subcategory'] != '5prime_fragment') & (agg_by_subcategory['category'] == 'NNC')].groupby(['group', 'tool']).sum().reset_index(),
-        'polyA motif',
-        header_suffix=' w/o Monoexons and 5\' Fragments',
-        export_name='PolyA_motif_NNC_no_monoexons_no_5fragment',
-        cmap=PAS_CMAP)
+heatmaps(agg_by_subcategory, 'CAGE support', [
+    [('', None), ('FSM', FSM), ('ISM', ISM), ('NIC', NIC), ('NNC', NNC)],
+    [('', None), ('no monoexons', no_monoexon)],
+    [('', None), ('no 3prime', no_3prime)]
+    ], cmap=TSS_CMAP)
+heatmaps(agg_by_subcategory, 'TSS ratio', [
+    [('', None), ('FSM', FSM), ('ISM', ISM), ('NIC', NIC), ('NNC', NNC)],
+    [('', None), ('no monoexons', no_monoexon)],
+    [('', None), ('no 3prime', no_3prime)]
+    ], cmap=TSS_CMAP)
+heatmaps(agg_by_subcategory, 'polyA site', [
+    [('', None), ('FSM', FSM), ('ISM', ISM), ('NIC', NIC), ('NNC', NNC)],
+    [('', None), ('no monoexons', no_monoexon)],
+    [('', None), ('no 5prime', no_5prime)]
+    ], cmap=PAS_CMAP)
+heatmaps(agg_by_subcategory, 'polyA motif', [
+    [('', None), ('FSM', FSM), ('ISM', ISM), ('NIC', NIC), ('NNC', NNC)],
+    [('', None), ('no monoexons', no_monoexon)],
+    [('', None), ('no 5prime', no_5prime)]
+    ], cmap=PAS_CMAP)
 
 logger.info('Subcategory heatmaps plotted')
+#endregion
 
-# # Correlation
+#region Correlation
 STATS_FILE = snakemake.output['stats']
 
 with open(STATS_FILE, 'w') as f:
@@ -379,4 +258,4 @@ with open(STATS_FILE, 'w') as f:
 
 logger.info('Correlations calculated')
 logger.info('Done')
-
+#endregion
