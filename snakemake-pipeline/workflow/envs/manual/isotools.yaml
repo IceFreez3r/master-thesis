@@ -1,8 +1,0 @@
-name: isotools
-channels:
- - bioconda
- - conda-forge
-dependencies:
-  pip:
-    # ! Install isotools manually, minimum commit 90f7402
-    - isotools

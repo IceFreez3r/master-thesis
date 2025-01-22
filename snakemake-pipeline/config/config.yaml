@@ -17,16 +17,13 @@ CAGE_table: /path/to/ONT_TSS/CAGE_table.tsv
 PolyASitePeaks: /path/to/data/PolyA_Site/atlas.clusters.2.0.GRCh38.96.bed.gz
 
 ### TRANSCRIPTOME TOOL SETTINGS ###
-# ! Some of the tools used by this pipeline have poor conda support and require manual creation of the environment
-# ! with the exact name from the .yaml file. Snakemake will fail at runtime if the environment is not available!
-# ! See workflow/envs/manual/ for the corresponding environment files
 # Specify a subset of the available tools (flair, isoquant, isotools, stringtie)
 # * IsoTools is special here. It requires manual creation of the environment (see at the top), but it allows you to
 # * pass any environment name, that starts with "isotools", allowing you to test multiple versions of IsoTools in parallel
-tools: ["flair", "isoquant", "isotools_v0", "isotools_v2", "stringtie"]
+tools: ["flair", "isoquant", "isotools_v0", "isotools_v2", "isotools_v2_strict", "stringtie"]
 
 flair:
-  # FLAIRs memory consumption drastically increase for .bed files over 1GB
+  # FLAIRs memory consumption drastically increases for .bed files over 1GB
   # If the .bed file is larger than this, it will be split by chromosome
   bed_split_size: 1e9
   # Extra command line options for FLAIR, see https://flair.readthedocs.io/en/stable/modules.html
@@ -40,8 +37,10 @@ isoquant:
 
 isotools:
   # Extra parameters for each IsoTools version for each function call
-  # Supported are parameters for add_sample_from_bam, add_qc_metrics and write_gtf
-  # a query is required in write_gtf, but the restriction can be circumvented by passing an empty string
+  # Supported are parameters for add_sample_from_bam, add_qc_metrics, write_gtf and training_sequences.
+  # See https://isotools.readthedocs.io/en/latest/
+  # A query is required in write_gtf, but the restriction can be circumvented by passing an empty string.
+  # training_sequences is only executed when specified. It requires the critierium to be set
   isotools_v0:
     add_qc_metrics:
       correct_tss: False
@@ -55,9 +54,11 @@ isotools:
     training_sequences:
       query: "BALANCED"
       criterium: "sqanti_classification.within_CAGE_peak"
+  isotools_v2_strict:
+    write_gtf:
+      query: "STRICT"
 
 stringtie:
-  # ! Stringtie needs manual building with make
   # provide the path to the binary afterwards
   path: /path/to/code/stringtie/stringtie
   # Extra command line options for Stringtie, see https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual
@@ -84,9 +85,9 @@ sqanti:
     all:
       tools: all
       groups: all
-    wtc11:
-      tools: ["isotools_peak_balanced", "isotools_tss_balanced", "isotools_peak_strict", "isotools_tss_strict"]
-      tool_names: ["Peak Finding BALANCED", "TSS Extension BALANCED", "Peak Finding STRICT", "TSS Extension STRICT"]
+    balanced_wtc_11:
+      tools: ["isotools_v0", "isotools_v2"]
+      tool_names: ["Peak Finding", "TSS Extension"]
       groups: ["CapTrap_ONT/wtc11","CapTrap_PacBio/wtc11","cDNA_ONT/wtc11","cDNA_PacBio/wtc11","dRNA_ONT/wtc11","R2C2_ONT/wtc11"]
       group_names: ["CapTrap ONT","CapTrap PacBio","cDNA ONT","cDNA PacBio","dRNA ONT","R2C2 ONT"]
   # Whether to include titles in plots
@@ -96,14 +97,5 @@ sqanti:
   pas_cmap: "magma_r"
 
 ### MISCELLANEOUS ###
-# cluster couldn't find conda
-path_to_conda: /home/lankenau/miniforge-pypy3/bin
-
-# Reduces bam files to chr15 for testing
-test_run: False
-# Replace resources from above, when test_run is set to True
-test_config:
-  sample_table: /path/to/data/reads/metadata_tissue_test.tsv
-  CAGE_table: /path/to/data/CAGE_test
-  rnaseq_fastq_fofn: /path/to/data/rna_seq/fastq_test/rnaseq_metadata_fastq_test.tsv
-  annot_gtf: /path/to/data/gencode_human/version_46/gencode.v46.annotation.chr15.gtf.gz
+# cluster couldn't find conda, uncomment if you've similar problems
+# path_to_conda: /home/lankenau/miniforge-pypy3/bin

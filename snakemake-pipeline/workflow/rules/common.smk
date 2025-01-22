@@ -10,7 +10,7 @@ localrules:
 
 WORKING_TOOLS = config["tools"]
 
-if (config["test_run"]):
+if config.get("test_run", False):
     for overwrite in config["test_config"]:
         config[overwrite] = config["test_config"][overwrite]
 
@@ -75,7 +75,7 @@ class Utility:
         sample_file = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         if sample_file.endswith(".bam"):
             return sample_file
-        if config["test_run"]:
+        if config.get("test_run", False):
             return f"resources/test/mapped_reads/{sample}_sorted_test.bam"
         return f"resources/mapped_reads/{sample}_sorted.bam"
 
@@ -83,7 +83,7 @@ class Utility:
         sample_file = self.sample_df[self.sample_df["sample ID"] == sample]["file"].values[0]
         if sample_file.endswith(".bam"):
             return f"{sample_file}.bai"
-        if config["test_run"]:
+        if config.get("test_run", False):
             return f"resources/test/mapped_reads/{sample}_sorted_test.bam.bai"
         return f"resources/mapped_reads/{sample}_sorted.bam.bai"
 
@@ -111,7 +111,7 @@ class Utility:
         if sample_files.iloc[0].endswith(".bam"):
             return sample_files.tolist()
         samples = self.samples_for_tissue(tissue)
-        if config["test_run"]:
+        if config.get("test_run", False):
             return [f"resources/test/mapped_reads/{sample}_sorted_test.bam" for sample in samples]
         return [f"resources/mapped_reads/{sample}_sorted.bam" for sample in samples]
 
@@ -121,7 +121,7 @@ class Utility:
         if sample_files.iloc[0].endswith(".bam"):
             return [f"{sample_file}.bai" for sample_file in sample_files]
         samples = self.samples_for_tissue(tissue)
-        if config["test_run"]:
+        if config.get("test_run", False):
             return [f"resources/test/mapped_reads/{sample}_sorted_test.bam.bai" for sample in samples]
         return [f"resources/mapped_reads/{sample}_sorted.bam.bai" for sample in samples]
 
