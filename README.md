@@ -66,3 +66,27 @@ make -j4 release
       - set the desired DPI
       - specify the color maps for TSS and PAS plots
 - If snakemake has trouble to find conda, uncomment `path_to_conda` and specifiy the path to the conda executable. This might or might not help.
+
+# Output Files
+
+*All paths are relative to the `snakemake-pipeline/` folder.*
+
+## Logs
+
+Each rule produces at least one log file, which can be found in `logs/`. Errors from some of the python scripts are hard to capture, so they might land either in stdout/stderr or in log files from your cluster environment depending on your snakemake configuration.
+
+## Results
+
+Each tool produces one gtf file for each group of samples. These can be found in `results/<tool>/transcriptome/<group>.gtf`. A gzipped file with a tabix index is also available.
+
+If you're interested in some of the tool specific output files, you can find them in the respective tool folder in `results/<tool>/`.
+
+The SQANTI3 results of each tool are stored in `results/sqanti/<tool>/<group>`. You'll find the SQANTI3 report in HTML and PDF format, as well as the `<group>_classification.txt` file.
+
+## Plots
+
+All plots are in `results/plots`.
+
+The overlap between tools is in `results/plots/upset/`. `all/` contains all combinations, while `filtered/` excludes the combinations with only one tool. Both folders also have a `mean.png` file, that uses the average overlap over all groups.
+
+The heatmaps are in `results/plots/sqanti/`. One folder for each plot group, which you defined in the config. For each `CAGE_support`, `TSS_ratio`, `polyA_motif` and `polyA_site` at least 20 different heatmaps are created. Additionally three `transcript_counts` bar plot show the distribution of transcripts in the SQANTI3 categories and subcategories. And last there is `stats.tsv`, which outputs the correlation between between CAGE support and TSS ratio, as well as the correlation between polyA motif and polyA site.
