@@ -21,6 +21,7 @@ metadata = pd.read_csv(metadata_path, sep="\t")
 extra = snakemake.params.extra
 extra_add_sample_from_bam = extra.get("add_sample_from_bam", {})
 extra_add_qc_metrics = extra.get("add_qc_metrics", {})
+extra_filters = extra.get("add_filter", {})
 extra_write_gtf = extra.get("write_gtf")
 assert "query" in extra_write_gtf, "query is required in extra.write_gtf. If you explicitly want to set it to None, use `query: ''`"
 
@@ -37,6 +38,12 @@ for sample, alignment in zip(samples, alignments):
 
 logger.info("Computing qc metrics")
 isoseq.add_qc_metrics(genome_path, progress_bar=False, **extra_add_qc_metrics)
+
+if extra_filters:
+    logger.info("Addying extra filters to the isotools object")
+    for filter in extra_filters:
+        tag, expression, context = filter["tag"], filter["expression"], filter["context"]
+        isoseq.add_filter(tag, expression, context)
 
 logger.info("Exporting isotools to GTF and pickle")
 isoseq.write_gtf(snakemake.output.gtf, gzip=False, **extra_write_gtf)

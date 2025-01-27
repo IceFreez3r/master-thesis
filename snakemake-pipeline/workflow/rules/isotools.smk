@@ -3,7 +3,7 @@ def isotools_versions():
 
 def isotools_training_sequences_versions():
     # All versions that have "training sequences" defined
-    return [tool for tool in isotools_versions() if config["isotools"].get(tool).get('training_sequences')]
+    return [tool for tool in isotools_versions() if config["isotools"].get(tool).get('export_end_sequences')]
 
 rule isotools:
     input:
@@ -53,7 +53,7 @@ rule isotools_training_sequences:
     log:
         "logs/isotools{version}/{group}_training_sequences.log",
     params:
-        extra=lambda wildcards: config["isotools"].get('isotools' + wildcards.version).get('training_sequences'),
+        extra=lambda wildcards: config["isotools"].get('isotools' + wildcards.version).get('export_end_sequences'),
         output_prefix=lambda wildcards, output: output.positive.replace("_positive.fa", ""),
     threads: 1
     resources:

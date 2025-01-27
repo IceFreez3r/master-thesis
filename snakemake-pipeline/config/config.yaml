@@ -47,13 +47,25 @@ isotools:
     write_gtf:
       query: "BALANCED"
   isotools_v2:
+    add_filter: [
+      {
+        tag: DOUBLE_TSS_SUPPORT,
+        expression: 'sqanti_classification is not None and sqanti_classification["dist_to_CAGE_peak"] <= 25 and sqanti_classification["ratio_TSS"] >= 1.5',
+        context: transcript
+      },
+      {
+        tag: NO_TSS_SUPPORT,
+        expression: 'sqanti_classification is not None and sqanti_classification["dist_to_CAGE_peak"] > 25 and sqanti_classification["ratio_TSS"] < 1.5',
+        context: transcript
+      }
+    ]
     add_sample_from_bam:
       save_readnames: True
     write_gtf:
       query: "BALANCED"
-    training_sequences:
-      query: "BALANCED"
-      criterium: "sqanti_classification.within_CAGE_peak"
+    export_end_sequences:
+      positive_query: BALANCED and DOUBLE_TSS_SUPPORT
+      negative_query: BALANCED and NO_TSS_SUPPORT
   isotools_v2_strict:
     write_gtf:
       query: "STRICT"
